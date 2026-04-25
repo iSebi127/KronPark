@@ -79,8 +79,23 @@
     transition: 0.3s;
 }
 
+.main-login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .main-login-btn:hover {
     background: #3b82f6;
+}
+
+.form-message {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.error-message {
+    color: #fca5a5;
 }
 
 .login-divider {
