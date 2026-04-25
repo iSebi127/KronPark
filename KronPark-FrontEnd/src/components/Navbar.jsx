@@ -4,7 +4,6 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
   return (
     <div className="fixed top-6 left-0 right-0 z-50 px-6">
       <nav className="max-w-7xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 text-white shadow-2xl rounded-3xl">
-        {/* Folosim grid cu 3 coloane pentru a centra perfect mijlocul */}
         <div className="px-8 py-3 grid grid-cols-3 items-center">
           
           {/* 1. STÂNGA: Logo */}
@@ -18,13 +17,19 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
             <span className="text-xl font-black tracking-tighter hidden sm:block">KronPark</span>
           </div>
           
-          {/* 2. MIJLOC: Butonul Acasă */}
-          <div className="flex justify-center">
+          {/* 2. MIJLOC: Navigare */}
+          <div className="flex justify-center gap-2">
             <button 
               onClick={() => setCurrentPage('landing')} 
               className="px-6 py-2 rounded-full text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-white/10"
             >
               Acasă
+            </button>
+            <button 
+              onClick={() => setCurrentPage('map')} 
+              className="px-6 py-2 rounded-full text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-white/10"
+            >
+              Hartă
             </button>
           </div>
 
