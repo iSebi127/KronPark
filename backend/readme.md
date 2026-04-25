@@ -2,18 +2,29 @@
 
 ## Cerinte
 - Docker / Docker Desktop
-- Java 17+ (pentru rulare locala)
+- Java 21+ (pentru rulare locala)
 
 ## Instalare si Rulare
 
-1. **Pornire Infrastructura (Baza de date)**
-   Ruleaza din directorul radacina:
+1. **Pornire Stack Complet (Frontend + Backend + Baza de date)**
+   Ruleaza din directorul radacina al proiectului:
    ```bash
    docker compose up -d
    ```
 
-2. **Pornire Aplicatie**
-   Ruleaza din folderul backend:
+2. **Acces Aplicatie**
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8080`
+   - PostgreSQL: `localhost:5432`
+
+3. **Pornire Doar Backend + Baza de date**
+   Daca vrei sa rulezi doar backend-ul separat, intra in folderul `backend` si ruleaza:
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Pornire Backend Local (fara container pentru aplicatie)**
+   Dupa ce baza de date ruleaza, porneste aplicatia din folderul `backend`:
    ```bash
    ./mvnw spring-boot:run
    ```

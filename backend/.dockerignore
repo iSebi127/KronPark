@@ -1,7 +1,11 @@
 .git
 .idea
-target
-Dockerfile
+*.log
+*.tmp
+*.env
+docker-compose.yml
+HELP.md
 README.md
 readme.md
-HELP.md
+target
+Dockerfile
