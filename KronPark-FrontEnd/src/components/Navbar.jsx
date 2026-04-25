@@ -2,16 +2,6 @@ import React from 'react';
 
 function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
   return (
-<<<<<<< HEAD
-    <nav className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-4 px-6 shadow-lg">
-      <div className="flex items-center">
-        <div 
-          className="text-2xl font-bold cursor-pointer hover:opacity-80 transition flex items-center gap-2" 
-          onClick={() => setCurrentPage('landing')}
-        >
-          <div className="bg-blue-400 px-3 py-1 rounded-lg font-bold">P</div>
-          KronPark
-=======
     <div className="fixed top-6 left-0 right-0 z-50 px-6">
       <nav className="max-w-7xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 text-white shadow-2xl rounded-3xl">
         <div className="px-8 py-3 grid grid-cols-3 items-center">
@@ -69,11 +59,9 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
               </>
             )}
           </div>
-
->>>>>>> feature/parking-map
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
 

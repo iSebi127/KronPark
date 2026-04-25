@@ -4,12 +4,9 @@ import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Signup from './signup';
 import Login from './login';
-<<<<<<< HEAD
+import MapPage from './pages/MapPage'; 
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-=======
-import MapPage from './pages/MapPage';
->>>>>>> feature/parking-map
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing');
@@ -49,7 +46,6 @@ function App() {
       
       <div className="flex-1">
         {currentPage === 'landing' && <Landing setCurrentPage={setCurrentPage} />}
-<<<<<<< HEAD
         
         {currentPage === 'signup' && (
           <Signup setCurrentPage={setCurrentPage} onAuthSuccess={handleAuthSuccess} />
@@ -58,11 +54,9 @@ function App() {
         {currentPage === 'login' && (
           <Login setCurrentPage={setCurrentPage} onAuthSuccess={handleAuthSuccess} />
         )}
-=======
-        {currentPage === 'signup' && <Signup setCurrentPage={setCurrentPage} />}
-        {currentPage === 'login' && <Login setCurrentPage={setCurrentPage} />}
+
+        {/* Adăugăm MapPage aici */}
         {currentPage === 'map' && <MapPage />}
->>>>>>> feature/parking-map
       </div>
     </div>
   );

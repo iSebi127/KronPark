@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig";
 
 const generateMockSpots = () => {
   const zones = ["A", "B", "C"];
@@ -22,60 +20,30 @@ const generateMockSpots = () => {
   return spots;
 };
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
-
 export const useParkingSpots = () => {
   const [spots, setSpots] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (USE_MOCK || !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
-      setSpots(generateMockSpots());
-      setLoading(false);
+    setSpots(generateMockSpots());
+    setLoading(false);
 
-      const interval = setInterval(() => {
-        setSpots((prev) =>
-          prev.map((spot) => {
-            if (Math.random() < 0.08) {
-              const statuses = ["free", "occupied", "reserved"];
-              return {
-                ...spot,
-                status: statuses[Math.floor(Math.random() * statuses.length)],
-              };
-            }
-            return spot;
-          })
-        );
-      }, 5000);
+    const interval = setInterval(() => {
+      setSpots((prev) =>
+        prev.map((spot) => {
+          if (Math.random() < 0.08) {
+            const statuses = ["free", "occupied", "reserved"];
+            return {
+              ...spot,
+              status: statuses[Math.floor(Math.random() * statuses.length)],
+            };
+          }
+          return spot;
+        })
+      );
+    }, 5000);
 
-      return () => clearInterval(interval);
-    }
-
-    const q = query(
-      collection(db, "parkingSpots"),
-      orderBy("zone"),
-      orderBy("number")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setSpots(data);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Firestore error:", err);
-        setError(err.message);
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
+    return () => clearInterval(interval);
   }, []);
 
   const stats = {
@@ -91,5 +59,5 @@ export const useParkingSpots = () => {
     return acc;
   }, {});
 
-  return { spots, spotsByZone, stats, loading, error };
+  return { spots, spotsByZone, stats, loading, error: null };
 };
