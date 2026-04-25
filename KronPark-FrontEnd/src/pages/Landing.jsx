@@ -3,18 +3,24 @@ import React from 'react';
 function Landing({ setCurrentPage }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-gray-900">
-      {/* Hero */}
+      {/* Hero Section */}
       <div className="min-h-screen flex items-center justify-center text-center px-4">
         <div>
           <h1 className="text-6xl font-bold text-white mb-4">🅿️ KronPark</h1>
-          <p className="text-2xl text-blue-200 mb-8 max-w-2xl mx-auto">Găsește, rezervă și plătește locurile de parcare - rapid și ușor</p>
+          <p className="text-2xl text-blue-200 mb-8 max-w-2xl mx-auto">
+            Găsește, rezervă și plătește locurile de parcare - rapid și ușor
+          </p>
+          
           <div className="flex gap-4 justify-center flex-wrap">
+            {/* BUTONUL DE SIGNUP (Crează Cont) */}
             <button 
               onClick={() => setCurrentPage('signup')} 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
             >
               Crează Cont
             </button>
+
+            {/* BUTONUL DE LOGIN (Autentificare) */}
             <button 
               onClick={() => setCurrentPage('login')} 
               className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
@@ -25,7 +31,7 @@ function Landing({ setCurrentPage }) {
         </div>
       </div>
 
-      {/* Features */}
+      {/* Features Section */}
       <div className="bg-gray-900 py-16 px-4">
         <h2 className="text-4xl font-bold text-center text-white mb-12">De ce să alegi KronPark?</h2>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -46,6 +52,7 @@ function Landing({ setCurrentPage }) {
   );
 }
 
+// Componenta mică pentru carduri (FeatureCard)
 function FeatureCard({ icon, title, description }) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition transform hover:scale-105">

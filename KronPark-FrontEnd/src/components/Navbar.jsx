@@ -2,31 +2,62 @@ import React from 'react';
 
 function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
   return (
-    <nav className="bg-gradient-to-r from-blue-700 to-blue-900 text-white sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div 
-          className="text-2xl font-bold cursor-pointer hover:opacity-80 transition" 
-          onClick={() => setCurrentPage('landing')}
-        >
-          🅿️ KronPark
-        </div>
-        
-        <ul className="flex gap-6 text-sm">
-          <li><button onClick={() => setCurrentPage('landing')} className="hover:text-blue-200 transition">Acasă</button></li>
-        </ul>
+    <div className="fixed top-6 left-0 right-0 z-50 px-6">
+      <nav className="max-w-7xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 text-white shadow-2xl rounded-3xl">
+        {/* Folosim grid cu 3 coloane pentru a centra perfect mijlocul */}
+        <div className="px-8 py-3 grid grid-cols-3 items-center">
+          
+          {/* 1. STÂNGA: Logo */}
+          <div 
+            className="flex items-center gap-2 cursor-pointer group w-fit" 
+            onClick={() => setCurrentPage('landing')}
+          >
+            <div className="bg-blue-600 w-9 h-9 flex items-center justify-center rounded-xl shadow-lg shadow-blue-500/40 group-hover:scale-110 transition duration-300">
+              <span className="font-black text-lg">P</span>
+            </div>
+            <span className="text-xl font-black tracking-tighter hidden sm:block">KronPark</span>
+          </div>
+          
+          {/* 2. MIJLOC: Butonul Acasă */}
+          <div className="flex justify-center">
+            <button 
+              onClick={() => setCurrentPage('landing')} 
+              className="px-6 py-2 rounded-full text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-white/10"
+            >
+              Acasă
+            </button>
+          </div>
 
-    <div className="flex gap-2">
-  {isLoggedIn ? (
-    <button 
-      onClick={onLogout} 
-      className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold transition transform hover:scale-105"
-    >
-      Deconectare
-    </button>
-  ) : null}
-</div>
-      </div>
-    </nav>
+          {/* 3. DREAPTA: Auth Buttons */}
+          <div className="flex justify-end gap-2 sm:gap-5 items-center">
+            {isLoggedIn ? (
+              <button 
+                onClick={onLogout} 
+                className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 border border-red-500/30"
+              >
+                Ieșire
+              </button>
+            ) : (
+              <>
+                <button 
+                  onClick={() => setCurrentPage('login')} 
+                  className="text-sm font-bold text-slate-300 hover:text-white transition-colors duration-300"
+                >
+                  Log In
+                </button>
+                <button 
+                  onClick={() => setCurrentPage('signup')} 
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/30 transition-all duration-300 active:scale-95"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+          </div>
+
+        </div>
+      </nav>
+    </div>
   );
 }
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
+import Signup from './signup';
+import Login from './login'; 
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing');
@@ -26,6 +28,10 @@ function App() {
       
       <div className="flex-1">
         {currentPage === 'landing' && <Landing setCurrentPage={setCurrentPage} />}
+        
+        {currentPage === 'signup' && <Signup setCurrentPage={setCurrentPage} />}
+        
+        {currentPage === 'login' && <Login setCurrentPage={setCurrentPage} />}
       </div>
     </div>
   );
