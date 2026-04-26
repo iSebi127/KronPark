@@ -4,6 +4,7 @@ import Landing from './pages/Landing';
 import Signup from './pages/Signup';  
 import Login from './pages/Login';    
 import MapPage from './pages/MapPage'; 
+import Dashboard from './pages/Dashboard';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -21,7 +22,7 @@ function App() {
   const handleAuthSuccess = (user) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
     setIsLoggedIn(true);
-    setCurrentPage('landing');
+    setCurrentPage('dashboard');
   };
 
   const handleLogout = async () => {
@@ -40,7 +41,7 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
+    <div className="bg-slate-950 text-white min-h-screen flex flex-col">
       <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} setCurrentPage={setCurrentPage} />
       
       <div className="flex-1">
@@ -52,6 +53,10 @@ function App() {
 
         {currentPage === 'login' && (
           <Login setCurrentPage={setCurrentPage} onAuthSuccess={handleAuthSuccess} />
+        )}
+
+        {currentPage === 'dashboard' && (
+          <Dashboard setCurrentPage={setCurrentPage} onLogout={handleLogout} />
         )}
 
         {currentPage === 'map' && <MapPage />}
