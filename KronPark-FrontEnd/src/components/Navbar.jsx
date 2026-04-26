@@ -9,7 +9,7 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
           {/* 1. STÂNGA: Logo */}
           <div 
             className="flex items-center gap-2 cursor-pointer group w-fit" 
-            onClick={() => setCurrentPage('landing')}
+            onClick={() => setCurrentPage(isLoggedIn ? 'dashboard' : 'landing')}
           >
             <div className="bg-blue-600 w-9 h-9 flex items-center justify-center rounded-xl shadow-lg shadow-blue-500/40 group-hover:scale-110 transition duration-300">
               <span className="font-black text-lg">P</span>
@@ -20,7 +20,7 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
           {/* 2. MIJLOC: Navigare */}
           <div className="flex justify-center gap-2">
             <button 
-              onClick={() => setCurrentPage('landing')} 
+              onClick={() => setCurrentPage(isLoggedIn ? 'dashboard' : 'landing')}
               className="px-6 py-2 rounded-full text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-white/10"
             >
               Acasă

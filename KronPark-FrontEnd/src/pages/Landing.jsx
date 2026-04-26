@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Landing({ setCurrentPage }) {
+function Landing({ setCurrentPage, isLoggedIn }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-gray-900">
       {/* Hero Section */}
@@ -12,21 +12,32 @@ function Landing({ setCurrentPage }) {
           </p>
           
           <div className="flex gap-4 justify-center flex-wrap">
-            {/* BUTONUL DE SIGNUP (Crează Cont) */}
-            <button 
-              onClick={() => setCurrentPage('signup')} 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
-            >
-              Crează Cont
-            </button>
+            {isLoggedIn ? (
+              <button
+                onClick={() => setCurrentPage('dashboard')}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-green-500/20"
+              >
+                Mergi la Dashboard
+              </button>
+            ) : (
+              <>
+                {/* BUTONUL DE SIGNUP (Crează Cont) */}
+                <button
+                  onClick={() => setCurrentPage('signup')}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
+                >
+                  Crează Cont
+                </button>
 
-            {/* BUTONUL DE LOGIN (Autentificare) */}
-            <button 
-              onClick={() => setCurrentPage('login')} 
-              className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
-            >
-              Autentificare
-            </button>
+                {/* BUTONUL DE LOGIN (Autentificare) */}
+                <button
+                  onClick={() => setCurrentPage('login')}
+                  className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
+                >
+                  Autentificare
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

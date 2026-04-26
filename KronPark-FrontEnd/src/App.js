@@ -12,12 +12,26 @@ function App() {
   const [currentPage, setCurrentPage] = useState('landing');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // On mount: auto-sign-in if there's a saved user (i.e. user didn't explicitly log out)
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      setIsLoggedIn(true);
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        setIsLoggedIn(true);
+        setCurrentPage('dashboard');
+      }
+    } catch (e) {
+      // ignore localStorage access errors
+      console.warn('Could not access localStorage on mount', e);
     }
   }, []);
+
+  // If the user is logged in, prevent navigating to login/signup pages.
+  useEffect(() => {
+    if (isLoggedIn && (currentPage === 'login' || currentPage === 'signup' || currentPage === 'landing')) {
+      setCurrentPage('dashboard');
+    }
+  }, [isLoggedIn, currentPage]);
 
   const handleAuthSuccess = (user) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
@@ -45,8 +59,8 @@ function App() {
       <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} setCurrentPage={setCurrentPage} />
       
       <div className="flex-1">
-        {currentPage === 'landing' && <Landing setCurrentPage={setCurrentPage} />}
-        
+        {currentPage === 'landing' && <Landing setCurrentPage={setCurrentPage} isLoggedIn={isLoggedIn} />}
+
         {currentPage === 'signup' && (
           <Signup setCurrentPage={setCurrentPage} onAuthSuccess={handleAuthSuccess} />
         )}
