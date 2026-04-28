@@ -38,6 +38,7 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
             {isLoggedIn ? (
               <button 
                 onClick={onLogout} 
+                data-cy="navbar-logout"
                 className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 border border-red-500/30"
               >
                 Ieșire
@@ -46,12 +47,14 @@ function Navbar({ isLoggedIn, onLogout, setCurrentPage }) {
               <>
                 <button 
                   onClick={() => setCurrentPage('login')} 
+                  data-cy="navbar-login"
                   className="text-sm font-bold text-slate-300 hover:text-white transition-colors duration-300"
                 >
                   Log In
                 </button>
                 <button 
                   onClick={() => setCurrentPage('signup')} 
+                  data-cy="navbar-signup"
                   className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/30 transition-all duration-300 active:scale-95"
                 >
                   Sign Up

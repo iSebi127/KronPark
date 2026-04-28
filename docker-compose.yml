@@ -10,7 +10,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/kronpark
       DB_USERNAME: kronpark
       DB_PASSWORD: kronpark
-      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173,http://frontend-e2e:3000
     ports:
       - "8080:8080"
 
@@ -24,6 +24,29 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+
+  frontend-e2e:
+    build:
+      context: ./KronPark-FrontEnd
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://backend:8080
+    depends_on:
+      - backend
+    profiles:
+      - e2e
+
+  cypress:
+    image: cypress/included:14.5.4
+    working_dir: /e2e
+    depends_on:
+      - frontend-e2e
+    environment:
+      CYPRESS_baseUrl: http://frontend-e2e:3000
+    volumes:
+      - ./KronPark-FrontEnd:/e2e
+    profiles:
+      - e2e
 
   postgres:
     image: postgres:16

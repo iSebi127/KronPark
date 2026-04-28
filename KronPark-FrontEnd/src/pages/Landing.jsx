@@ -24,6 +24,7 @@ function Landing({ setCurrentPage, isLoggedIn }) {
                 {/* BUTONUL DE SIGNUP (Crează Cont) */}
                 <button
                   onClick={() => setCurrentPage('signup')}
+                  data-cy="landing-signup"
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
                 >
                   Crează Cont
@@ -32,6 +33,7 @@ function Landing({ setCurrentPage, isLoggedIn }) {
                 {/* BUTONUL DE LOGIN (Autentificare) */}
                 <button
                   onClick={() => setCurrentPage('login')}
+                  data-cy="landing-login"
                   className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
                 >
                   Autentificare
