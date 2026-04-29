@@ -67,8 +67,8 @@ function Dashboard({ setCurrentPage, onLogout }) {
               <h1 className="text-4xl font-black text-white mb-2">
                 Bine ai venit! 👋
               </h1>
-              <p className="text-slate-400 text-lg">{currentUser?.fullName}</p>
-              <p className="text-slate-500 text-sm mt-1">{currentUser?.email}</p>
+              <p data-cy="dashboard-user-name" className="text-slate-400 text-lg">{currentUser?.fullName}</p>
+              <p data-cy="dashboard-user-email" className="text-slate-500 text-sm mt-1">{currentUser?.email}</p>
             </div>
             <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-6 text-center">
               <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">Rezervări Active</p>
@@ -95,6 +95,7 @@ function Dashboard({ setCurrentPage, onLogout }) {
           </button>
           <button
             onClick={onLogout}
+            data-cy="dashboard-logout"
             className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold py-3 rounded-xl transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
           >
             🚪 Ieșire

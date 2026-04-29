@@ -67,6 +67,7 @@ function Login({ setCurrentPage, onAuthSuccess }) {
             <input
               type="email"
               name="email"
+              data-cy="login-email"
               placeholder="nume@exemplu.com"
               value={formData.email}
               onChange={handleChange}
@@ -82,6 +83,7 @@ function Login({ setCurrentPage, onAuthSuccess }) {
             <input
               type="password"
               name="password"
+              data-cy="login-password"
               placeholder="Introdu parola"
               value={formData.password}
               onChange={handleChange}
@@ -91,13 +93,17 @@ function Login({ setCurrentPage, onAuthSuccess }) {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm bg-red-950/30 p-3 rounded-lg border border-red-900/50">
+            <p
+              data-cy="login-error"
+              className="text-red-400 text-sm bg-red-950/30 p-3 rounded-lg border border-red-900/50"
+            >
               {error}
             </p>
           )}
 
           <button
             type="submit"
+            data-cy="login-submit"
             disabled={isSubmitting}
             className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 text-white font-bold py-2 rounded-lg transition duration-300 text-sm"
           >
@@ -115,6 +121,7 @@ function Login({ setCurrentPage, onAuthSuccess }) {
           <p className="text-slate-500 text-sm mb-2">Nu ai un cont?</p>
           <button
             onClick={() => setCurrentPage('signup')}
+            data-cy="go-to-signup"
             className="bg-none border-none text-blue-400 font-bold text-sm cursor-pointer hover:text-blue-300 transition"
           >
             Creeaza cont nou

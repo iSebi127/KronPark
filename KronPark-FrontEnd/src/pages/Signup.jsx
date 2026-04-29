@@ -71,6 +71,7 @@ function Signup({ setCurrentPage, onAuthSuccess }) {
             <input
               type="text"
               name="fullName"
+              data-cy="signup-fullname"
               placeholder="Ex: Ion Popescu"
               value={formData.fullName}
               onChange={handleChange}
@@ -86,6 +87,7 @@ function Signup({ setCurrentPage, onAuthSuccess }) {
             <input
               type="email"
               name="email"
+              data-cy="signup-email"
               placeholder="nume@exemplu.com"
               value={formData.email}
               onChange={handleChange}
@@ -101,6 +103,7 @@ function Signup({ setCurrentPage, onAuthSuccess }) {
             <input
               type="password"
               name="password"
+              data-cy="signup-password"
               placeholder="Minim 8 caractere"
               value={formData.password}
               onChange={handleChange}
@@ -111,13 +114,17 @@ function Signup({ setCurrentPage, onAuthSuccess }) {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm bg-red-950/30 p-3 rounded-lg border border-red-900/50">
+            <p
+              data-cy="signup-error"
+              className="text-red-400 text-sm bg-red-950/30 p-3 rounded-lg border border-red-900/50"
+            >
               {error}
             </p>
           )}
 
           <button
             type="submit"
+            data-cy="signup-submit"
             disabled={isSubmitting}
             className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 text-white font-bold py-2 rounded-lg transition duration-300 text-sm"
           >
@@ -135,6 +142,7 @@ function Signup({ setCurrentPage, onAuthSuccess }) {
           <p className="text-slate-500 text-sm mb-2">Ai deja un cont?</p>
           <button
             onClick={() => setCurrentPage('login')}
+            data-cy="go-to-login"
             className="bg-none border-none text-blue-400 font-bold text-sm cursor-pointer hover:text-blue-300 transition"
           >
             Autentifica-te
