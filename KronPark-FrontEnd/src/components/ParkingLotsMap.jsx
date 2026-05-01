@@ -70,7 +70,7 @@ export default function ParkingLotsMap() {
     } catch (err) {
       console.error('Could not save reservation', err);
     } finally {
-      setActiveModalLot(null);
+      // keep modal open so user can continue interacting; modal UI updates locally
     }
   };
 

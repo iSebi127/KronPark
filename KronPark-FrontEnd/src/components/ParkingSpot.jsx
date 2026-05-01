@@ -43,7 +43,7 @@ const ParkingSpot = ({ spot, isSelected, onClick }) => {
       className={
         `
         relative rounded-md border transition-all duration-200
-        flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold
+        w-full h-full flex items-center justify-center gap-1 px-1 py-0.5 text-[10px] font-semibold
         ${style.bg} ${style.cursor} ${style.ring}
         ${
           isSelected
@@ -53,15 +53,16 @@ const ParkingSpot = ({ spot, isSelected, onClick }) => {
       `
       }
     >
-      <div className="flex flex-col items-center leading-none">
-        {icon && <span className="text-xs opacity-80">{icon}</span>}
-        <span className={`text-sm ${isSelected ? "text-blue-300" : style.text}`}>{spot.id}</span>
+      <div className="flex items-center gap-1 leading-none w-full justify-center">
+        {icon && <span className="text-[9px] opacity-80">{icon}</span>}
+        <span className={`${isSelected ? "text-blue-300" : style.text} truncate`}>{spot.id}</span>
+        <span
+          style={{ width: 8, height: 8 }}
+          className={`rounded-full ${
+            spot.status === "free" ? "bg-emerald-400" : spot.status === "occupied" ? "bg-red-400" : "bg-amber-400"
+          } ${spot.status === "free" ? "animate-pulse" : ""}`}
+        />
       </div>
-      <span
-        className={`w-2 h-2 rounded-full ml-2 ${
-          spot.status === "free" ? "bg-emerald-400" : spot.status === "occupied" ? "bg-red-400" : "bg-amber-400"
-        } ${spot.status === "free" ? "animate-pulse" : ""}`}
-      />
     </button>
   );
 };
