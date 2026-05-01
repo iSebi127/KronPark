@@ -1,5 +1,5 @@
 const ParkingLegend = () => (
-  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-slate-800">
+  <div data-cy="parking-legend" className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-slate-800">
     <p className="text-slate-600 text-xs uppercase tracking-widest font-medium">Legendă</p>
     {[
       { color: "bg-emerald-500", label: "Liber — click pentru a selecta" },

@@ -36,11 +36,15 @@ const ParkingStats = ({ stats }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {cards.map(({ label, value, color, bg, bar, pct }) => (
-        <div key={label} className={`rounded-2xl border p-4 ${bg} backdrop-blur-sm`}>
+        <div
+          key={label}
+          data-cy={`parking-stat-${label.toLowerCase().replace(/\s+/g, "-")}`}
+          className={`rounded-2xl border p-4 ${bg} backdrop-blur-sm`}
+        >
           <p className="text-slate-500 text-xs uppercase tracking-widest font-medium mb-1">
             {label}
           </p>
-          <p className={`text-3xl font-bold tabular-nums ${color}`}>{value}</p>
+          <p data-cy="parking-stat-value" className={`text-3xl font-bold tabular-nums ${color}`}>{value}</p>
           {bar && pct !== undefined && (
             <div className="mt-2">
               <div className="h-1 rounded-full bg-slate-700/50 overflow-hidden">

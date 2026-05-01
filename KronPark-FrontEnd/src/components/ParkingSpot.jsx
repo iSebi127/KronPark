@@ -33,6 +33,8 @@ const ParkingSpot = ({ spot, isSelected, onClick }) => {
     <button
       onClick={onClick}
       disabled={spot.status !== "free"}
+      data-cy={`parking-spot-${spot.id}`}
+      data-status={spot.status}
       title={`Loc ${spot.id} — ${
         spot.status === "free"
           ? "Liber"
