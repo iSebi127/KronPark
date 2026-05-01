@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-function Dashboard({ setCurrentPage, onLogout }) {
+function Dashboard({ onLogout }) {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,8 +16,16 @@ function Dashboard({ setCurrentPage, onLogout }) {
     if (user) {
       setCurrentUser(JSON.parse(user));
     }
-    // TODO: Fetch din API când e gata backend
-    // fetchReservations();
+
+    // load reservations from localStorage (dev fallback)
+    try {
+      const raw = localStorage.getItem('reservations');
+      const arr = raw ? JSON.parse(raw) : [];
+      setReservations(arr);
+    } catch (err) {
+      setReservations([]);
+    }
+
     setLoading(false);
   }, []);
 
@@ -60,196 +70,196 @@ function Dashboard({ setCurrentPage, onLogout }) {
     <div className="min-h-screen bg-slate-950 px-4 py-8">
       <div className="max-w-5xl mx-auto">
         
-        {/* Header Profil */}
-        <div className="bg-gradient-to-r from-slate-900/70 to-slate-800/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-8 shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-black text-white mb-2">
-                Bine ai venit! 👋
-              </h1>
-              <p data-cy="dashboard-user-name" className="text-slate-400 text-lg">{currentUser?.fullName}</p>
-              <p data-cy="dashboard-user-email" className="text-slate-500 text-sm mt-1">{currentUser?.email}</p>
-            </div>
-            <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-6 text-center">
-              <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">Rezervări Active</p>
-              <p className="text-3xl font-black text-blue-400">
-                {reservations.filter(r => r.status === 'active').length}
-              </p>
+          {/* Header Profil */}
+          <div className="bg-gradient-to-r from-slate-900/70 to-slate-800/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-8 shadow-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div>
+                <h1 className="text-4xl font-black text-white mb-2">
+                  Bine ai venit! 👋
+                </h1>
+                <p data-cy="dashboard-user-name" className="text-slate-400 text-lg">{currentUser?.fullName}</p>
+                <p data-cy="dashboard-user-email" className="text-slate-500 text-sm mt-1">{currentUser?.email}</p>
+              </div>
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-6 text-center">
+                <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">Rezervări Active</p>
+                <p className="text-3xl font-black text-blue-400">
+                  {reservations.filter(r => r.status === 'active').length}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Butoane Navigare */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <button
-            onClick={() => setCurrentPage('map')}
-            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-blue-600/30 active:scale-95"
-          >
-            🗺️ Mergi la Hartă
-          </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all duration-300 border border-white/10 hover:border-white/20"
-          >
-            👤 Editează Profil
-          </button>
-          <button
-            onClick={onLogout}
-            data-cy="dashboard-logout"
-            className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold py-3 rounded-xl transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
-          >
-            🚪 Ieșire
-          </button>
-        </div>
+          {/* Butoane Navigare */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <button
+              onClick={() => navigate('/map')}
+              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-blue-600/30 active:scale-95"
+            >
+              🗺️ Mergi la Hartă
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all duration-300 border border-white/10 hover:border-white/20"
+            >
+              👤 Editează Profil
+            </button>
+            <button
+              onClick={onLogout}
+              data-cy="dashboard-logout"
+              className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold py-3 rounded-xl transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
+            >
+              🚪 Ieșire
+            </button>
+          </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-8 border-b border-white/10">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-4 py-3 font-bold text-sm transition-all duration-300 border-b-2 ${
-              activeTab === 'overview'
-                ? 'text-blue-400 border-blue-400'
-                : 'text-slate-400 border-transparent hover:text-slate-300'
-            }`}
-          >
-            Istoric Rezervări
-          </button>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-4 py-3 font-bold text-sm transition-all duration-300 border-b-2 ${
-              activeTab === 'profile'
-                ? 'text-blue-400 border-blue-400'
-                : 'text-slate-400 border-transparent hover:text-slate-300'
-            }`}
-          >
-            Informații Profil
-          </button>
-        </div>
+          {/* Tab Navigation */}
+          <div className="flex gap-2 mb-8 border-b border-white/10">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-3 font-bold text-sm transition-all duration-300 border-b-2 ${
+                activeTab === 'overview'
+                  ? 'text-blue-400 border-blue-400'
+                  : 'text-slate-400 border-transparent hover:text-slate-300'
+              }`}
+            >
+              Istoric Rezervări
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-4 py-3 font-bold text-sm transition-all duration-300 border-b-2 ${
+                activeTab === 'profile'
+                  ? 'text-blue-400 border-blue-400'
+                  : 'text-slate-400 border-transparent hover:text-slate-300'
+              }`}
+            >
+              Informații Profil
+            </button>
+          </div>
 
-        {/* Content */}
-        {activeTab === 'overview' && (
-          <div className="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-black text-white mb-6">Rezervările Tale</h2>
-            
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/50 p-4 rounded-lg mb-6">
-                <p className="text-red-400">{error}</p>
-              </div>
-            )}
+          {/* Content */}
+          {activeTab === 'overview' && (
+            <div className="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+              <h2 className="text-2xl font-black text-white mb-6">Rezervările Tale</h2>
 
-            {reservations.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-slate-400 text-lg mb-4">
-                  Nu ai nicio rezervare momentan
-                </p>
-                <button 
-                  onClick={() => setCurrentPage('map')}
-                  className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition"
-                >
-                  Rezerva un loc acum →
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {reservations.map((reservation) => (
-                  <div 
-                    key={reservation.id} 
-                    className="bg-slate-800/50 border border-white/5 hover:border-white/10 p-6 rounded-xl transition-all duration-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/50 p-4 rounded-lg mb-6">
+                  <p className="text-red-400">{error}</p>
+                </div>
+              )}
+
+              {reservations.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-400 text-lg mb-4">
+                    Nu ai nicio rezervare momentan
+                  </p>
+                  <button
+                    onClick={() => navigate('/map')}
+                    className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl font-black text-blue-400">
-                          {reservation.spotId}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                          reservation.status === 'active' 
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : reservation.status === 'expired'
-                            ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
-                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                        }`}>
-                          {reservation.status === 'active' ? '✓ Activ' : reservation.status === 'expired' ? 'Expirat' : 'Anulat'}
-                        </span>
+                    Rezerva un loc acum →
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reservations.map((reservation) => (
+                    <div
+                      key={reservation.id}
+                      className="bg-slate-800/50 border border-white/5 hover:border-white/10 p-6 rounded-xl transition-all duration-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl font-black text-blue-400">
+                            {reservation.spotId}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                            reservation.status === 'active' 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : reservation.status === 'expired'
+                              ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                              : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          }`}>
+                            {reservation.status === 'active' ? '✓ Activ' : reservation.status === 'expired' ? 'Expirat' : 'Anulat'}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-sm">
+                          📅 {new Date(reservation.date).toLocaleDateString('ro-RO')}
+                          <span className="mx-2">•</span>
+                          🕐 {reservation.startTime} - {reservation.endTime}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-1">
+                          Zona {reservation.spotId.charAt(0)} | Tip: {reservation.spotType || 'Standard'}
+                        </p>
                       </div>
-                      <p className="text-slate-400 text-sm">
-                        📅 {new Date(reservation.date).toLocaleDateString('ro-RO')} 
-                        <span className="mx-2">•</span>
-                        🕐 {reservation.startTime} - {reservation.endTime}
-                      </p>
-                      <p className="text-slate-500 text-xs mt-1">
-                        Zona {reservation.spotId.charAt(0)} | Tip: {reservation.spotType || 'Standard'}
-                      </p>
+                      {reservation.status === 'active' && (
+                        <button
+                          onClick={() => handleCancelReservation(reservation.id)}
+                          className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 border border-red-500/30 hover:border-red-500/50 whitespace-nowrap"
+                        >
+                          ✕ Anulează
+                        </button>
+                      )}
                     </div>
-                    {reservation.status === 'active' && (
-                      <button
-                        onClick={() => handleCancelReservation(reservation.id)}
-                        className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 border border-red-500/30 hover:border-red-500/50 whitespace-nowrap"
-                      >
-                        ✕ Anulează
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-        {activeTab === 'profile' && (
-          <div className="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-black text-white mb-8">Informații Profil</h2>
-            
-            <div className="space-y-6">
-              {/* Nume */}
-              <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
-                  Nume Complet
-                </label>
-                <input
-                  type="text"
-                  value={currentUser?.fullName || ''}
-                  disabled
-                  className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white disabled:opacity-60 cursor-not-allowed"
-                />
-              </div>
+          {activeTab === 'profile' && (
+            <div className="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+              <h2 className="text-2xl font-black text-white mb-8">Informații Profil</h2>
 
-              {/* Email */}
-              <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={currentUser?.email || ''}
-                  disabled
-                  className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white disabled:opacity-60 cursor-not-allowed"
-                />
-              </div>
+              <div className="space-y-6">
+                {/* Nume */}
+                <div>
+                  <label className="block text-slate-300 text-sm font-semibold mb-2">
+                    Nume Complet
+                  </label>
+                  <input
+                    type="text"
+                    value={currentUser?.fullName || ''}
+                    disabled
+                    className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white disabled:opacity-60 cursor-not-allowed"
+                  />
+                </div>
 
-              {/* Schimbare Parola */}
-              <div>
-                <label className="block text-slate-300 text-sm font-semibold mb-2">
-                  Parola Nouă
-                </label>
-                <input
-                  type="password"
-                  placeholder="Lăsă gol dacă nu vrei să schimbi"
-                  className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white outline-none focus:border-blue-500 transition"
-                />
-              </div>
+                {/* Email */}
+                <div>
+                  <label className="block text-slate-300 text-sm font-semibold mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={currentUser?.email || ''}
+                    disabled
+                    className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white disabled:opacity-60 cursor-not-allowed"
+                  />
+                </div>
 
-              <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all duration-300 disabled:bg-slate-600">
-                💾 Salvează Modificări
-              </button>
+                {/* Schimbare Parola */}
+                <div>
+                  <label className="block text-slate-300 text-sm font-semibold mb-2">
+                    Parola Nouă
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Lăsă gol dacă nu vrei să schimbi"
+                    className="w-full bg-slate-950/50 border border-slate-700 px-4 py-3 rounded-lg text-white outline-none focus:border-blue-500 transition"
+                  />
+                </div>
 
-              <div className="bg-slate-800/50 border border-white/5 p-4 rounded-lg">
-                <p className="text-slate-400 text-xs">
-                  ℹ️ Funcționalitatea de editare profil va fi disponibilă curând
-                </p>
+                <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all duration-300 disabled:bg-slate-600">
+                  💾 Salvează Modificări
+                </button>
+
+                <div className="bg-slate-800/50 border border-white/5 p-4 rounded-lg">
+                  <p className="text-slate-400 text-xs">
+                    ℹ️ Funcționalitatea de editare profil va fi disponibilă curând
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

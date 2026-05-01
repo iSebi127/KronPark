@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function Landing({ setCurrentPage, isLoggedIn }) {
+function Landing({ isLoggedIn }) {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-gray-900">
       {/* Hero Section */}
@@ -14,7 +16,7 @@ function Landing({ setCurrentPage, isLoggedIn }) {
           <div className="flex gap-4 justify-center flex-wrap">
             {isLoggedIn ? (
               <button
-                onClick={() => setCurrentPage('dashboard')}
+                onClick={() => navigate('/dashboard')}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-green-500/20"
               >
                 Mergi la Dashboard
@@ -23,7 +25,7 @@ function Landing({ setCurrentPage, isLoggedIn }) {
               <>
                 {/* BUTONUL DE SIGNUP (Crează Cont) */}
                 <button
-                  onClick={() => setCurrentPage('signup')}
+                  onClick={() => navigate('/signup')}
                   data-cy="landing-signup"
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
                 >
@@ -32,7 +34,7 @@ function Landing({ setCurrentPage, isLoggedIn }) {
 
                 {/* BUTONUL DE LOGIN (Autentificare) */}
                 <button
-                  onClick={() => setCurrentPage('login')}
+                  onClick={() => navigate('/login')}
                   data-cy="landing-login"
                   className="border-2 border-white text-white hover:bg-white hover:text-blue-900 px-6 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95"
                 >
