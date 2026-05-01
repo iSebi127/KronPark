@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, /*Rectangle,*/ useMapEvents /*, Popup*/ } from 'react-leaflet';
-import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SafeRectangle from './SafeRectangle';
@@ -86,7 +85,7 @@ function centerFromBounds(bounds) {
 // layout: { spots: [ {id, status, bounds}, ... ] }
 const HighZoomParkingMap = ({ layout, onReserve }) => {
   const [lotLayout, setLotLayout] = useState(() => layout || generateDefaultLayout());
-  const [selected, setSelected] = useState(null); // { spot, latlng }
+  // removed selected popup state: clicks on free spots will directly reserve
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
@@ -95,40 +94,17 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
 
   // handle click from Rectangle: receive event and spot
   const handleRectClick = (e, spot) => {
-    // try to get latlng from event
-    let latlng = null;
-    try {
-      if (e && e.latlng) {
-        // Leaflet LatLng object -> [lat, lng]
-        latlng = Array.isArray(e.latlng) ? [Number(e.latlng[0]), Number(e.latlng[1])] : [Number(e.latlng.lat), Number(e.latlng.lng)];
-      }
-    } catch (err) {
-      latlng = null;
+    // reserve immediately if free (no popup confirmation)
+    if (spot.status === 'free') {
+      setLotLayout(prev => {
+        const copy = { ...prev };
+        copy.spots = copy.spots.map(s => (s.id === spot.id ? { ...s, status: 'reserved' } : s));
+        return copy;
+      });
+      if (onReserve) onReserve(spot.id);
     }
 
-    // fallback: compute center from spot.bounds
-    if (!isValidLatLng(latlng)) {
-      const c = centerFromBounds(spot.bounds);
-      if (isValidLatLng(c)) latlng = c;
-    }
-
-    if (!isValidLatLng(latlng)) {
-      // as a last resort ignore the click and log the problematic spot for debugging
-      console.warn('Received invalid latlng for spot click, skipping popup. spot:', spot, 'event:', e);
-      return;
-    }
-
-    setSelected({ spot, latlng });
-  };
-
-  const handleReserve = (spotId) => {
-    setLotLayout(prev => {
-      const copy = { ...prev };
-      copy.spots = copy.spots.map(s => (s.id === spotId ? { ...s, status: 'reserved' } : s));
-      return copy;
-    });
-    if (onReserve) onReserve(spotId);
-    setSelected(null);
+    // otherwise ignore clicks for occupied/reserved spots
   };
 
   const spots = lotLayout.spots || [];
@@ -179,33 +155,8 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
             />
           ))}
 
-          <MapEvents onClick={() => setSelected(null)} />
+          <MapEvents onClick={() => { /* empty: used to clear selection */ }} />
 
-          {/* Replace Leaflet Popup with DOM modal so it appears above the map */}
-          {selected && (
-            createPortal(
-              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4" onClick={() => setSelected(null)}>
-                <div className="absolute inset-0 bg-black/60" />
-                <div className="relative bg-slate-900 w-full md:w-4/5 rounded-t-2xl md:rounded-2xl p-4 max-h-[90vh] overflow-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="text-lg font-bold text-white">{selected.spot.id}</div>
-                      <p className="text-sm text-slate-400">Status: {selected.spot.status}</p>
-                    </div>
-                    <button onClick={() => setSelected(null)} className="text-slate-400 hover:text-white">Închide</button>
-                  </div>
-
-                  <div className="mt-2 flex gap-2">
-                    <button disabled={selected.spot.status !== 'free'} onClick={() => handleReserve(selected.spot.id)} className={`px-4 py-2 rounded ${selected.spot.status === 'free' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
-                      Rezervă
-                    </button>
-                    <button onClick={() => setSelected(null)} className="px-4 py-2 rounded bg-slate-700 text-white">Anulează</button>
-                  </div>
-                </div>
-              </div>,
-              document.body
-            )
-          )}
         </MapContainer>
       </div>
     </div>
@@ -213,3 +164,4 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
 };
 
 export default HighZoomParkingMap;
+
