@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-function Login({ setCurrentPage, onAuthSuccess }) {
+function Login({ onAuthSuccess }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -40,6 +42,7 @@ function Login({ setCurrentPage, onAuthSuccess }) {
       }
 
       onAuthSuccess(data.user);
+      navigate('/dashboard');
     } catch (requestError) {
       setError('Nu s-a putut contacta serverul.');
     } finally {
@@ -120,7 +123,7 @@ function Login({ setCurrentPage, onAuthSuccess }) {
         <div className="text-center">
           <p className="text-slate-500 text-sm mb-2">Nu ai un cont?</p>
           <button
-            onClick={() => setCurrentPage('signup')}
+            onClick={() => navigate('/signup')}
             data-cy="go-to-signup"
             className="bg-none border-none text-blue-400 font-bold text-sm cursor-pointer hover:text-blue-300 transition"
           >
