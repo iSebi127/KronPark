@@ -7,10 +7,8 @@ function Landing({ isLoggedIn }) {
   return (
     <div className="min-h-screen bg-gray-900">
       
-      {/* --- HERO SECTION --- */}
       <div className="relative min-h-screen flex items-center justify-center text-center px-4 overflow-hidden bg-gray-900">
         
-        {/* CEL MAI SIMPLU COD DE VIDEO - Fără niciun JS adăugat */}
         <video 
           autoPlay 
           loop 
@@ -18,12 +16,10 @@ function Landing({ isLoggedIn }) {
           playsInline
           className="absolute z-0 w-full h-full object-cover"
         >
-          {/* Va folosi WebM pentru loop perfect. Dacă browserul e vechi, trece pe mp4 */}
           <source src="/parking.webm" type="video/webm" />
           <source src="/parking.mp4" type="video/mp4" />
         </video>
 
-        {/* --- Textul și Butoanele --- */}
         <div className="relative z-10">
           <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-2xl">🅿️ KronPark</h1>
           <p className="text-2xl text-white mb-8 max-w-2xl mx-auto drop-shadow-xl font-medium">
@@ -55,26 +51,32 @@ function Landing({ isLoggedIn }) {
                 >
                   Autentificare
                 </button>
-              </>
+              </  >
             )}
           </div>
         </div>
       </div>
 
-      {/* --- FEATURES SECTION --- */}
-      <div className="bg-gray-900 py-16 px-4 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        <h2 className="text-4xl font-bold text-center text-white mb-12">De ce să alegi KronPark?</h2>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FeatureCard icon="⚡" title="Instant" description="Rezervă un loc în câteva secunde și ocupă-l imediat." />
-          <FeatureCard icon="🗺️" title="Localizare în Timp Real" description="Vezi disponibilitatea locurilor în timp real pe hartă." />
-          <FeatureCard icon="⏰" title="Timere Inteligente" description="Primești alertă înainte ca rezervarea să expire." />
-          <FeatureCard icon="🎯" title="Gamificație" description="Câștigă puncte și deblochează nivele cu fiecare rezervare." />
-          <FeatureCard icon="💳" title="Plată Sigură" description="Plați securizate și transparente, fără surprize." />
-          <FeatureCard icon="📱" title="Disponibil Oriunde" description="Funcționează pe mobil, tabletă și computer." />
+      <div 
+        className="relative py-16 px-4 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/imagine_descriere.png')" }}
+      >
+        
+        <div className="absolute inset-0 bg-gray-900/20 z-0"></div>
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center text-white mb-12 drop-shadow-lg">De ce să alegi KronPark?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard icon="⚡" title="Instant" description="Rezervă un loc în câteva secunde și ocupă-l imediat." />
+            <FeatureCard icon="🗺️" title="Localizare în Timp Real" description="Vezi disponibilitatea locurilor în timp real pe hartă." />
+            <FeatureCard icon="⏰" title="Timere Inteligente" description="Primești alertă înainte ca rezervarea să expire." />
+            <FeatureCard icon="🎯" title="Gamificație" description="Câștigă puncte și deblochează nivele cu fiecare rezervare." />
+            <FeatureCard icon="💳" title="Plată Sigură" description="Plați securizate și transparente, fără surprize." />
+            <FeatureCard icon="📱" title="Disponibil Oriunde" description="Funcționează pe mobil, tabletă și computer." />
+          </div>
         </div>
       </div>
 
-      {/* --- FOOTER --- */}
       <footer className="bg-gray-950 border-t border-gray-800 py-8 text-center text-gray-400 relative z-20">
         <p>&copy; 2026 KronPark. Toate drepturile rezervate.</p>
       </footer>
