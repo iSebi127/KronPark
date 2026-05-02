@@ -43,6 +43,8 @@ build/
 node_modules/
 cypress/videos/
 cypress/screenshots/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
 .pnp
 .pnp.js
 coverage/

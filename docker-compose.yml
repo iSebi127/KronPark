@@ -16,7 +16,7 @@ services:
 
   frontend:
     build:
-      context: ./KronPark-FrontEnd
+      context: frontend
       dockerfile: Dockerfile
     container_name: kronpark-frontend
     depends_on:
@@ -27,7 +27,7 @@ services:
 
   frontend-e2e:
     build:
-      context: ./KronPark-FrontEnd
+      context: frontend
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: http://backend:8080
@@ -44,7 +44,7 @@ services:
     environment:
       CYPRESS_baseUrl: http://frontend-e2e:3000
     volumes:
-      - ./KronPark-FrontEnd:/e2e
+      - ./frontend:/e2e
     profiles:
       - e2e
 

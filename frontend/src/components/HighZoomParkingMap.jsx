@@ -131,12 +131,24 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
   const spotsToRender = spotsValid.filter(s => filter === 'all' || s.status === filter);
 
   return (
-    <div className="w-full h-[60vh]">
+    <div className="w-full h-[60vh]" data-cy="lot-layout">
       <div className="flex items-center justify-between mb-2">
         <div className="text-white font-semibold">Layout schematic</div>
         <div className="flex gap-2">
-          <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded ${filter==='all' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Toate</button>
-          <button onClick={() => setFilter('free')} className={`px-3 py-1 rounded ${filter==='free' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Libere</button>
+          <button
+            onClick={() => setFilter('all')}
+            data-cy="lot-filter-all"
+            className={`px-3 py-1 rounded ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+          >
+            Toate
+          </button>
+          <button
+            onClick={() => setFilter('free')}
+            data-cy="lot-filter-free"
+            className={`px-3 py-1 rounded ${filter === 'free' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}
+          >
+            Libere
+          </button>
         </div>
       </div>
 
@@ -150,6 +162,7 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
             <SafeRectangle
               key={spot.id}
               bounds={spot.bounds}
+              className={`parking-spot-${spot.id}`}
               pathOptions={statusToOptions(spot.status)}
               eventHandlers={{ click: (e) => handleRectClick(e, spot) }}
             />
