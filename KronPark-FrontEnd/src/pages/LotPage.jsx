@@ -3,14 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import HighZoomParkingMap from '../components/HighZoomParkingMap';
 import PARKING_LOTS from '../data/parkingLots';
 
-// This page loads a lot by id and shows the layout
 const LotPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lot, setLot] = useState(null);
 
   useEffect(() => {
-    // try to read from localStorage first (used when opening in new tab)
     const localJson = localStorage.getItem('activeLot');
     if (localJson) {
       try {
@@ -24,7 +22,6 @@ const LotPage = () => {
       }
     }
 
-    // try sessionStorage as fallback
     const lotJson = sessionStorage.getItem('activeLot');
     if (lotJson) {
       try {
@@ -38,12 +35,10 @@ const LotPage = () => {
       }
     }
 
-    // fallback: find lot in data and generate a layout
-    const found = PARKING_LOTS.find(l => l.id === id);
+    const found = PARKING_LOTS.find((l) => l.id === id);
     if (found) {
-      // simple deterministic generator seeded by index
-      const index = PARKING_LOTS.findIndex(l => l.id === id);
-      // generate layout on the fly (same generator used elsewhere)
+      const index = PARKING_LOTS.findIndex((l) => l.id === id);
+
       function generateLotLayout(seed = 0) {
         const spots = [];
         const rows = 3 + (seed % 2);
@@ -55,8 +50,9 @@ const LotPage = () => {
         const gapX = 14;
         const gapY = 14;
         let counter = 1;
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
+
+        for (let r = 0; r < rows; r += 1) {
+          for (let c = 0; c < cols; c += 1) {
             const x1 = startX + c * (spotWidth + gapX);
             const y1 = startY + r * (spotHeight + gapY);
             const x2 = x1 + spotWidth;
@@ -65,6 +61,7 @@ const LotPage = () => {
             counter += 1;
           }
         }
+
         return { spots };
       }
 
@@ -72,11 +69,9 @@ const LotPage = () => {
       return;
     }
 
-    // not found: navigate back to map
     navigate('/map');
   }, [id, navigate]);
 
-  // onReserve: save reservation to localStorage and go to dashboard
   const handleReserve = (spotId) => {
     try {
       const now = new Date();
@@ -86,17 +81,20 @@ const LotPage = () => {
         spotId,
         date: now.toISOString(),
         startTime: now.toISOString(),
-        endTime: new Date(now.getTime() + 60 * 60 * 1000).toISOString(), // +1h
+        endTime: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
         status: 'active',
       };
 
       const raw = localStorage.getItem('reservations');
       let arr = [];
-      try { arr = raw ? JSON.parse(raw) : []; } catch (e) { arr = []; }
+      try {
+        arr = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        arr = [];
+      }
       arr.push(reservation);
       localStorage.setItem('reservations', JSON.stringify(arr));
 
-      // navigate to dashboard so user sees the reservation
       navigate('/dashboard');
     } catch (err) {
       console.error('Could not save reservation', err);
@@ -104,19 +102,33 @@ const LotPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pt-24">
+    <div className="min-h-screen bg-slate-950 text-slate-100 pt-24" data-cy="lot-layout-page">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">{lot?.name || 'Parcare'}</h1>
-            <p className="text-slate-400 text-sm">Vizualizare layout parcări</p>
+            <h1 className="text-2xl font-bold" data-cy="lot-title">
+              {lot?.name || 'Parcare'}
+            </h1>
+            <p className="text-slate-400 text-sm">Vizualizare layout parcari</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => navigate('/map')} className="bg-slate-800 text-slate-200 px-3 py-1 rounded">Înapoi la hartă</button>
+            <button
+              onClick={() => navigate('/map')}
+              data-cy="lot-back-to-map"
+              className="bg-slate-800 text-slate-200 px-3 py-1 rounded"
+            >
+              Inapoi la harta
+            </button>
           </div>
         </div>
 
-        {lot ? <HighZoomParkingMap layout={lot.layout} onReserve={handleReserve} /> : <div className="text-slate-400">Se încarcă...</div>}
+        {lot ? (
+          <HighZoomParkingMap layout={lot.layout} onReserve={handleReserve} />
+        ) : (
+          <div className="text-slate-400" data-cy="lot-loading">
+            Se incarca...
+          </div>
+        )}
       </div>
     </div>
   );

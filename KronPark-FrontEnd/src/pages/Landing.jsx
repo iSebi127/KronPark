@@ -30,7 +30,8 @@ function Landing({ isLoggedIn }) {
             {isLoggedIn ? (
               <button
                 onClick={() => navigate('/dashboard')}
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-green-500/30"
+                data-cy="landing-dashboard"
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg transition transform hover:scale-105 active:scale-95 shadow-lg shadow-green-500/20"
               >
                 Mergi la Dashboard
               </button>

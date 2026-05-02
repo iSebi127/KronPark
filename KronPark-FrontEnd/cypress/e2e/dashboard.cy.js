@@ -1,22 +1,20 @@
+const savedUser = {
+  id: 1,
+  fullName: "Test QA",
+  email: "test@kronpark.ro",
+};
+
 describe("Dashboard flows", () => {
   beforeEach(() => {
-    cy.visit("/");
-
-    cy.window().then((win) => {
-      win.localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          id: 1,
-          fullName: "Test QA",
-          email: "test@kronpark.ro",
-        })
-      );
+    cy.visit("/", {
+      onBeforeLoad(win) {
+        win.localStorage.setItem("currentUser", JSON.stringify(savedUser));
+      },
     });
-
-    cy.reload();
+    cy.get('[data-cy="landing-dashboard"]').click();
   });
 
-  it("opens the dashboard automatically for a saved user", () => {
+  it("opens the dashboard for a saved user", () => {
     cy.get('[data-cy="dashboard-user-name"]').should("contain", "Test QA");
     cy.get('[data-cy="dashboard-user-email"]').should("contain", "test@kronpark.ro");
     cy.get('[data-cy="dashboard-active-reservations-count"]').should("have.text", "0");
@@ -27,7 +25,8 @@ describe("Dashboard flows", () => {
     cy.get('[data-cy="dashboard-empty-reservations"]').should("be.visible");
     cy.get('[data-cy="dashboard-empty-go-to-map"]').click();
 
-    cy.get('[data-cy="parking-map-page"]').should("be.visible");
+    cy.url().should("include", "/map");
+    cy.get('[data-cy="parking-lots-map"]').should("be.visible");
   });
 
   it("switches to the profile tab and shows current user data", () => {

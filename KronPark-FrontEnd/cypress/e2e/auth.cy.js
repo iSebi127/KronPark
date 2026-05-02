@@ -36,7 +36,7 @@ describe("Auth flows", () => {
   it("shows API error on invalid login", () => {
     cy.intercept("POST", "**/api/auth/login", {
       statusCode: 401,
-      body: { message: "Credențiale invalide." },
+      body: { message: "Invalid credentials." },
     }).as("loginRequest");
 
     cy.get('[data-cy="landing-login"]').click();
@@ -45,7 +45,7 @@ describe("Auth flows", () => {
     cy.get('[data-cy="login-submit"]').click();
 
     cy.wait("@loginRequest");
-    cy.get('[data-cy="login-error"]').should("contain", "Credențiale invalide.");
+    cy.get('[data-cy="login-error"]').should("contain", "Invalid credentials.");
   });
 
   it("logs in and logs out with mocked API", () => {

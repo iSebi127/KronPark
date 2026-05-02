@@ -1,66 +1,43 @@
 describe("Parking map flows", () => {
   beforeEach(() => {
-    cy.visit("/");
+    cy.visit("/lots/lot-centrala", {
+      onBeforeLoad(win) {
+        win.localStorage.setItem(
+          "currentUser",
+          JSON.stringify({
+            id: 1,
+            fullName: "Test QA",
+            email: "test@kronpark.ro",
+          })
+        );
+      },
+    });
+  });
+
+  it("opens a lot layout and reserves a spot", () => {
+    cy.get('[data-cy="lot-layout-page"]').should("be.visible");
+    cy.get('[data-cy="lot-title"]').should("contain", "Parcare");
+    cy.get('[data-cy="lot-layout"]').should("be.visible");
+
+    cy.get('[data-cy="lot-filter-free"]').click();
+    cy.get('path.leaflet-interactive', { timeout: 20000 })
+      .not('[stroke-dasharray]')
+      .first()
+      .click({ force: true });
 
     cy.window().then((win) => {
-      win.localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          id: 1,
-          fullName: "Test QA",
-          email: "test@kronpark.ro",
-        })
-      );
+      const reservations = JSON.parse(win.localStorage.getItem("reservations") || "[]");
+      expect(reservations).to.have.length.at.least(1);
+      expect(reservations[0]).to.include({ lotId: "lot-centrala", spotId: "P0-1", status: "active" });
     });
 
-    cy.reload();
-    cy.get('[data-cy="dashboard-go-to-map"]').click();
+    cy.url().should("include", "/dashboard");
+    cy.get('[data-cy="dashboard-user-name"]').should("contain", "Test QA");
   });
 
-  it("shows parking stats and all zones", () => {
-    cy.get('[data-cy="parking-map-page"]').should("be.visible");
-    cy.get('[data-cy="parking-stat-total-locuri"] [data-cy="parking-stat-value"]').should("have.text", "15");
-    cy.get('[data-cy="parking-stat-libere"] [data-cy="parking-stat-value"]').should("have.text", "9");
-    cy.get('[data-cy="parking-stat-ocupate"] [data-cy="parking-stat-value"]').should("have.text", "4");
-    cy.get('[data-cy="parking-stat-rezervate"] [data-cy="parking-stat-value"]').should("have.text", "2");
-    cy.get('[data-cy="zone-section-A"]').should("be.visible");
-    cy.get('[data-cy="zone-section-B"]').should("be.visible");
-    cy.get('[data-cy="zone-section-C"]').should("be.visible");
-    cy.get('[data-cy="parking-legend"]').should("be.visible");
-  });
-
-  it("filters map by zone", () => {
-    cy.get('[data-cy="zone-filter-B"]').click();
-
-    cy.get('[data-cy="zone-section-B"]').should("be.visible");
-    cy.get('[data-cy="zone-section-A"]').should("not.exist");
-    cy.get('[data-cy="zone-section-C"]').should("not.exist");
-    cy.get('[data-cy="zone-grid-B"] [data-cy^="parking-spot-"]').should("have.length", 5);
-  });
-
-  it("filters map by parking spot status", () => {
-    cy.get('[data-cy="status-filter-reserved"]').click();
-
-    cy.get('[data-cy="zone-grid-A"] [data-cy^="parking-spot-"]').should("have.length", 1);
-    cy.get('[data-cy="zone-grid-A"] [data-cy="parking-spot-A4"]').should("exist");
-    cy.get('[data-cy="zone-grid-B"]').should("not.exist");
-    cy.get('[data-cy="zone-grid-C"] [data-cy^="parking-spot-"]').should("have.length", 1);
-    cy.get('[data-cy="zone-grid-C"] [data-cy="parking-spot-C5"]').should("exist");
-  });
-
-  it("allows selecting and clearing a free parking spot", () => {
-    cy.get('[data-cy="parking-spot-A1"]').click();
-
-    cy.get('[data-cy="selected-spot-panel"]').should("be.visible");
-    cy.get('[data-cy="selected-spot-id"]').should("have.text", "A1");
-
-    cy.get('[data-cy="cancel-selected-spot"]').click();
-    cy.get('[data-cy="selected-spot-panel"]').should("not.exist");
-  });
-
-  it("keeps occupied and reserved spots disabled", () => {
-    cy.get('[data-cy="parking-spot-A2"]').should("be.disabled");
-    cy.get('[data-cy="parking-spot-A4"]').should("be.disabled");
-    cy.get('[data-cy="selected-spot-panel"]').should("not.exist");
+  it("returns to the map after closing the lot page", () => {
+    cy.get('[data-cy="lot-back-to-map"]').click();
+    cy.url().should("include", "/map");
+    cy.get('[data-cy="parking-lots-map"]').should("be.visible");
   });
 });
