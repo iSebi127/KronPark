@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'KronPark-FrontEnd/**'
+      - 'frontend/**'
       - 'docker-compose.yml'
       - '.github/workflows/cypress-e2e.yml'
   pull_request:
     paths:
-      - 'KronPark-FrontEnd/**'
+      - 'frontend/**'
       - 'docker-compose.yml'
       - '.github/workflows/cypress-e2e.yml'
 
@@ -45,8 +45,8 @@ jobs:
         with:
           name: cypress-artifacts
           path: |
-            KronPark-FrontEnd/cypress/screenshots
-            KronPark-FrontEnd/cypress/videos
+            frontend/cypress/screenshots
+            frontend/cypress/videos
           if-no-files-found: ignore
 
       - name: Show container logs on failure

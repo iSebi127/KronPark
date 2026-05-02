@@ -43,8 +43,8 @@ build/
 node_modules/
 cypress/videos/
 cypress/screenshots/
-KronPark-FrontEnd/cypress/videos/
-KronPark-FrontEnd/cypress/screenshots/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
 .pnp
 .pnp.js
 coverage/
