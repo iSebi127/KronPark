@@ -6,9 +6,11 @@ import com.kronpark.backend.entity.*;
 import com.kronpark.backend.exception.ResourceNotFoundException;
 import com.kronpark.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,5 +64,39 @@ public class ReservationService {
                 .stream()
                 .map(ReservationResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void autoExpireReservations() {
+        LocalDateTime now = LocalDateTime.now();
+
+        int updatedCount = reservationRepository.updateStatusForExpiredReservations(
+                ReservationStatus.ACTIVE,
+                ReservationStatus.COMPLETED,
+                now
+        );
+
+        if (updatedCount > 0) {
+            System.out.println("There are " + updatedCount + " reservations marked as expired.");
+        }
+    }
+
+    @Transactional
+    public ReservationResponse cancelReservation(Long reservationId, String userEmail) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
+
+        if (!reservation.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalArgumentException("You can only cancel your own reservations");
+        }
+
+        if (reservation.getStatus() != ReservationStatus.ACTIVE) {
+            throw new IllegalStateException("Only active reservations can be cancelled");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+
+        return ReservationResponse.from(reservationRepository.save(reservation));
     }
 }
