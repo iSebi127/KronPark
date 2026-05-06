@@ -30,4 +30,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("completedStatus") ReservationStatus completedStatus,
             @Param("now") LocalDateTime now
     );
+    @Query("SELECT r FROM Reservation r WHERE r.status = 'ACTIVE' AND r.notified = false AND r.endTime BETWEEN :now AND :targetTime")
+    List<Reservation> findReservationsToNotify(
+            @Param("now") LocalDateTime now,
+            @Param("targetTime") LocalDateTime targetTime
+    );
 }

@@ -99,4 +99,19 @@ public class ReservationService {
 
         return ReservationResponse.from(reservationRepository.save(reservation));
     }
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void notifyUpcomingExpirations() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime tenMinutesFromNow = now.plusMinutes(10);
+
+        List<Reservation> toNotify = reservationRepository.findReservationsToNotify(now, tenMinutesFromNow);
+
+        for (Reservation reservation : toNotify) {
+            System.out.println(" To: " + reservation.getUser().getEmail() +
+                    " Reservation for parking spot " + reservation.getParkingSpot().getSpotNumber() +
+                    " expires in less than 10 minutes!");
+            reservation.setNotified(true);
+        }
+    }
 }
