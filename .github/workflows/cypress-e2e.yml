@@ -1,0 +1,58 @@
+name: Cypress E2E
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/cypress-e2e.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/cypress-e2e.yml'
+
+jobs:
+  cypress-e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build and start test stack
+        run: docker compose --profile e2e up --build -d postgres backend frontend-e2e
+
+      - name: Wait for frontend-e2e
+        run: |
+          for i in {1..30}; do
+            if docker compose exec -T frontend-e2e wget -qO- http://localhost:3000 >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "frontend-e2e did not become ready in time"
+          exit 1
+
+      - name: Run Cypress tests
+        run: docker compose --profile e2e run --rm cypress
+
+      - name: Upload Cypress artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-artifacts
+          path: |
+            frontend/cypress/screenshots
+            frontend/cypress/videos
+          if-no-files-found: ignore
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose --profile e2e logs
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose --profile e2e down -v
