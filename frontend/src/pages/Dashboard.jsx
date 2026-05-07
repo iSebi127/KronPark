@@ -11,6 +11,21 @@ function Dashboard({ onLogout }) {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
+  const formatDateTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+
+    const pad = (num) => String(num).padStart(2, '0');
+
+    const year = date.getFullYear().toString().slice(-2);
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) {
@@ -181,9 +196,7 @@ function Dashboard({ onLogout }) {
                         </span>
                       </div>
                       <p className="text-slate-400 text-sm">
-                        📅 {new Date(reservation.date).toLocaleDateString('ro-RO')}
-                        <span className="mx-2">•</span>
-                        🕐 {reservation.startTime} - {reservation.endTime}
+                        🕐 {formatDateTime(reservation.startTime)} - {formatDateTime(reservation.endTime)}
                       </p>
                       <p className="text-slate-500 text-xs mt-1">
                         Zona {reservation.spotId.charAt(0)} | Tip: {reservation.spotType || 'Standard'}
