@@ -15,7 +15,7 @@ function Login({ onAuthSuccess }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    if (error) setError('');
+    //if (error) setError('');
     setFormData((current) => ({
       ...current,
       [name]: value,
@@ -32,10 +32,16 @@ function Login({ onAuthSuccess }) {
         method: 'POST',
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = { message: 'Autentificarea a eșuat.' };
+      }
 
       if (!response.ok) {
-        setError(data.message || 'Autentificarea a esuat.');
+        setError(data?.message || 'Autentificarea a eșuat.');
         return;
       }
 

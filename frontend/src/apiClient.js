@@ -19,10 +19,15 @@ const apiClient = async (endpoint, options = {}) => {
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
-  if (response.status === 401) {
+  const isAuthRequest = endpoint.toLowerCase().includes('/api/auth/');
+
+  if (response.status === 401 && !isAuthRequest) {
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('currentUser');
-    window.location.href = '/login';
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/login' && currentPath !== '/') {
+      window.location.href = '/login';
+    }
   }
 
   return response;
