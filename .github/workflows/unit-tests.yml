@@ -31,7 +31,9 @@ jobs:
 
       - name: Build and Run Backend Tests
         working-directory: backend
-        run: ./mvnw test
+        run: |
+          chmod +x mvnw
+          ./mvnw test
 
   frontend-tests:
     name: Frontend Unit Tests
