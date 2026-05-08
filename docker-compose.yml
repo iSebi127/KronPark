@@ -25,6 +25,14 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
+  frontend-test:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      target: tester
+    profiles:
+      - test
+
   frontend-e2e:
     build:
       context: frontend
