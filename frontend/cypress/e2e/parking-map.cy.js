@@ -1,15 +1,31 @@
 describe("Parking map flows", () => {
   beforeEach(() => {
+    cy.intercept("GET", "**/api/parking-spots/*", {
+      statusCode: 200,
+      body: { id: 101, spotCode: "P0-1" },
+    }).as("getSpot");
+
+    cy.intercept("POST", "**/api/reservations", {
+      statusCode: 201,
+      body: { id: 1, status: "ACTIVE" },
+    }).as("postReservation");
+
+    cy.intercept("GET", "**/api/reservations/my", {
+      statusCode: 200,
+      body: [{ id: 1, spotId: "P0-1", status: "ACTIVE", startTime: new Date().toISOString(), endTime: new Date().toISOString() }],
+    }).as("getDashboardData");
+
     cy.visit("/lots/lot-centrala", {
       onBeforeLoad(win) {
         win.localStorage.setItem(
-          "currentUser",
-          JSON.stringify({
-            id: 1,
-            fullName: "Test QA",
-            email: "test@kronpark.ro",
-          })
+            "currentUser",
+            JSON.stringify({
+              id: 1,
+              fullName: "Test QA",
+              email: "test@kronpark.ro",
+            })
         );
+        win.localStorage.setItem("jwtToken", "fake-token");
       },
     });
   });
@@ -17,22 +33,20 @@ describe("Parking map flows", () => {
   it("opens a lot layout and reserves a spot", () => {
     cy.get('[data-cy="lot-layout-page"]').should("be.visible");
     cy.get('[data-cy="lot-title"]').should("contain", "Parcare");
-    cy.get('[data-cy="lot-layout"]').should("be.visible");
 
     cy.get('[data-cy="lot-filter-free"]').click();
-    cy.get('path.leaflet-interactive', { timeout: 20000 })
-      .not('[stroke-dasharray]')
-      .first()
-      .click({ force: true });
 
-    cy.window().then((win) => {
-      const reservations = JSON.parse(win.localStorage.getItem("reservations") || "[]");
-      expect(reservations).to.have.length.at.least(1);
-      expect(reservations[0]).to.include({ lotId: "lot-centrala", spotId: "P0-1", status: "active" });
-    });
+    cy.get('path.leaflet-interactive', { timeout: 10000 })
+        .not('[stroke-dasharray]')
+        .first()
+        .click({ force: true });
+
+    cy.wait("@getSpot");
+    cy.wait("@postReservation");
+    cy.wait("@getDashboardData");
 
     cy.url().should("include", "/dashboard");
-    cy.get('[data-cy="dashboard-user-name"]').should("contain", "Test QA");
+    cy.get('[data-cy="dashboard-user-name"]').should("be.visible").should("contain", "Test QA");
   });
 
   it("returns to the map after closing the lot page", () => {

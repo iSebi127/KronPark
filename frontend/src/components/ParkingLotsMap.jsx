@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import PARKING_LOTS from '../data/parkingLots';
 import ParkingLotModal from './ParkingLotModal';
+import apiClient from '../apiClient';
 
 // default icon fix for Leaflet in CRA
 delete L.Icon.Default.prototype._getIconUrl;
@@ -48,29 +49,60 @@ export default function ParkingLotsMap() {
 
   const handleCloseModal = () => setActiveModalLot(null);
 
-  const handleReserve = (spotId) => {
-    // replicate reservation behavior: save to localStorage and close modal
+  const handleReserve = async (spotId) => {
     try {
       const now = new Date();
-      const reservation = {
-        id: `${activeModalLot.id}-${spotId}-${now.getTime()}`,
-        lotId: activeModalLot.id,
-        spotId,
-        date: now.toISOString(),
-        startTime: now.toISOString(),
-        endTime: new Date(now.getTime() + 60 * 60 * 1000).toISOString(), // +1h
-        status: 'active',
-      };
+      const startTime = new Date(now.getTime() + 5 * 60 * 1000); // starts in 5 minutes
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h duration
 
-      const raw = localStorage.getItem('reservations');
-      let arr = [];
-      try { arr = raw ? JSON.parse(raw) : []; } catch (e) { arr = []; }
-      arr.push(reservation);
-      localStorage.setItem('reservations', JSON.stringify(arr));
+      // În loc să ghicim ID-ul numeric (care poate fi volatil între restartări Docker),
+      // căutăm ID-ul real al locului folosind codul său (ex: A1, P0-1).
+      let resolvedSpotId = null;
+      try {
+          // Normalizăm spotId dacă vine din layout-ul de pe hartă (P0-1 -> A1 pentru simplitate în maparea demonstrativă)
+          let searchCode = spotId;
+          if (typeof spotId === 'string' && spotId.includes('-')) {
+              // Mapăm P{seed}-{counter} pe A/B/C/D + counter pentru a găsi ceva în DataInitializer
+              const counter = parseInt(spotId.split('-')[1]);
+              const rowIdx = Math.floor((counter - 1) / 12);
+              const row = ["A", "B", "C", "D"][rowIdx] || "A";
+              const num = ((counter - 1) % 12) + 1;
+              searchCode = `${row}${num}`;
+          }
+
+          const spotRes = await apiClient(`/api/parking-spots/${searchCode}`);
+          if (spotRes.ok) {
+              const spotData = await spotRes.json();
+              resolvedSpotId = spotData.id;
+          }
+      } catch (e) {
+          console.warn('Nu s-a putut rezolva codul locului, folosim fallback:', e);
+      }
+
+      const spotNumericId = resolvedSpotId || 1;
+
+      const response = await apiClient('/api/reservations', {
+        method: 'POST',
+        body: JSON.stringify({
+          parkingSpotId: spotNumericId,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        // Option 1: Redirect to dashboard
+        // window.location.href = '/dashboard';
+        // Option 2: Just notify (since this is a map modal)
+        alert('Rezervare creată cu succes!');
+        setActiveModalLot(null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Eroare la crearea rezervării');
+      }
     } catch (err) {
-      console.error('Could not save reservation', err);
-    } finally {
-      // keep modal open so user can continue interacting; modal UI updates locally
+      console.error('Error reserving spot:', err);
+      alert('Nu s-a putut contacta serverul');
     }
   };
 

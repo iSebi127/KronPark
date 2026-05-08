@@ -24,6 +24,11 @@ public class ParkingSpotController {
         return parkingSpotService.getAllSpots();
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/{spotNumber}")
+    public ParkingSpotResponse getSpotByNumber(@org.springframework.web.bind.annotation.PathVariable String spotNumber) {
+        return parkingSpotService.getSpotByNumber(spotNumber);
+    }
+
     @org.springframework.web.bind.annotation.PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public org.springframework.http.ResponseEntity<ParkingSpotResponse> createSpot(

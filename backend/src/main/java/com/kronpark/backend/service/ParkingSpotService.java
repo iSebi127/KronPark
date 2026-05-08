@@ -1,6 +1,8 @@
 package com.kronpark.backend.service;
 
 import com.kronpark.backend.dto.ParkingSpotResponse;
+import com.kronpark.backend.entity.ParkingSpot;
+import com.kronpark.backend.exception.ResourceNotFoundException;
 import com.kronpark.backend.repository.ParkingSpotRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,12 @@ public class ParkingSpotService {
                 .stream()
                 .map(ParkingSpotResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    public ParkingSpotResponse getSpotByNumber(String spotNumber) {
+        ParkingSpot spot = parkingSpotRepository.findBySpotNumber(spotNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Parking spot not found: " + spotNumber));
+        return ParkingSpotResponse.from(spot);
     }
 
     public ParkingSpotResponse createSpot(com.kronpark.backend.dto.CreateParkingSpotRequest request) {

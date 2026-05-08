@@ -6,12 +6,19 @@ const savedUser = {
 
 describe("Dashboard flows", () => {
   beforeEach(() => {
+    cy.intercept("GET", "**/api/reservations/my", {
+      statusCode: 200,
+      body: [],
+    }).as("getReservations");
+
     cy.visit("/", {
       onBeforeLoad(win) {
         win.localStorage.setItem("currentUser", JSON.stringify(savedUser));
+        win.localStorage.setItem("jwtToken", "fake-token");
       },
     });
     cy.get('[data-cy="landing-dashboard"]').click();
+    cy.wait("@getReservations");
   });
 
   it("opens the dashboard for a saved user", () => {
