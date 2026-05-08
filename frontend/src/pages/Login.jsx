@@ -15,7 +15,7 @@ function Login({ onAuthSuccess }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    //if (error) setError('');
+    if (error) setError('');
     setFormData((current) => ({
       ...current,
       [name]: value,
