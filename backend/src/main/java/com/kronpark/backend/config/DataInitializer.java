@@ -15,25 +15,21 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initParkingSpots(ParkingSpotRepository parkingSpotRepository) {
         return args -> {
-
             if (parkingSpotRepository.count() == 0) {
+                // Generate 48 spots (4 rows x 12 columns) to cover common frontend mock layouts
+                String[] rows = {"A", "B", "C", "D"};
+                int spotsPerRow = 12;
 
-
-                List<String> defaultSpots = List.of(
-                        "A1", "A2", "A3", "A4", "A5",
-                        "B1", "B2", "B3", "B4", "B5"
-                );
-
-
-                for (String spotNumber : defaultSpots) {
-                    ParkingSpot spot = new ParkingSpot();
-                    spot.setSpotNumber(spotNumber);
-                    spot.setStatus(SpotStatus.AVAILABLE);
-
-                    parkingSpotRepository.save(spot);
+                for (String row : rows) {
+                    for (int i = 1; i <= spotsPerRow; i++) {
+                        ParkingSpot spot = new ParkingSpot();
+                        spot.setSpotNumber(row + i);
+                        spot.setStatus(SpotStatus.AVAILABLE);
+                        parkingSpotRepository.save(spot);
+                    }
                 }
 
-                System.out.println("Au fost generate " + defaultSpots.size() + " locuri de parcare default!");
+                System.out.println("Au fost generate " + (rows.length * spotsPerRow) + " locuri de parcare default!");
             } else {
                 System.out.println("Locurile de parcare exista deja in baza de date.");
             }

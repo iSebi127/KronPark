@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../apiClient';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -27,12 +28,8 @@ function Login({ onAuthSuccess }) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await apiClient('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify(formData),
       });
       const data = await response.json();
@@ -42,7 +39,7 @@ function Login({ onAuthSuccess }) {
         return;
       }
 
-      onAuthSuccess(data.user);
+      onAuthSuccess(data.user, data.token);
       navigate('/dashboard');
     } catch (requestError) {
       setError('Nu s-a putut contacta serverul.');

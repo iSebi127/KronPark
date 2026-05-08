@@ -56,6 +56,7 @@ public class ReservationService {
         return ReservationResponse.from(reservationRepository.save(reservation));
     }
 
+    @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

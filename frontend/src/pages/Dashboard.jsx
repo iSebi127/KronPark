@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../apiClient';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -23,32 +24,28 @@ function Dashboard({ onLogout }) {
     const hours = pad(date.getHours());
     const minutes = pad(date.getMinutes());
 
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) {
-      setCurrentUser(JSON.parse(user));
+      try {
+          setCurrentUser(JSON.parse(user));
+      } catch (e) {
+          console.error("Failed to parse user from localStorage", e);
+      }
     }
 
-    // load reservations from localStorage (dev fallback)
-    try {
-      const raw = localStorage.getItem('reservations');
-      const arr = raw ? JSON.parse(raw) : [];
-      setReservations(arr);
-    } catch (err) {
-      setReservations([]);
-    }
+    // load reservations from API
+    fetchReservations();
 
     setLoading(false);
   }, []);
 
   const fetchReservations = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reservations`, {
-        credentials: 'include',
-      });
+      const response = await apiClient('/api/reservations/my');
       const data = await response.json();
       if (response.ok) {
         setReservations(data);
@@ -61,12 +58,11 @@ function Dashboard({ onLogout }) {
 
   const handleCancelReservation = async (reservationId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reservations/${reservationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
+      const response = await apiClient(`/api/reservations/${reservationId}/cancel`, {
+        method: 'PATCH',
       });
       if (response.ok) {
-        setReservations(reservations.filter(r => r.id !== reservationId));
+        fetchReservations();
       }
     } catch (err) {
       console.error('Error canceling reservation:', err);
@@ -97,7 +93,7 @@ function Dashboard({ onLogout }) {
             <div data-cy="dashboard-active-reservations-card" className="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-6 text-center">
               <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">Rezervări Active</p>
               <p data-cy="dashboard-active-reservations-count" className="text-3xl font-black text-blue-400">
-                {reservations.filter(r => r.status === 'active').length}
+                {reservations.filter(r => r.status === 'ACTIVE').length}
               </p>
             </div>
           </div>
@@ -186,23 +182,23 @@ function Dashboard({ onLogout }) {
                           {reservation.spotId}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                          reservation.status === 'active' 
+                          reservation.status === 'ACTIVE' 
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : reservation.status === 'expired'
+                            : reservation.status === 'EXPIRED'
                             ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
                             : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                         }`}>
-                          {reservation.status === 'active' ? '✓ Activ' : reservation.status === 'expired' ? 'Expirat' : 'Anulat'}
+                          {reservation.status === 'ACTIVE' ? '✓ Activ' : reservation.status === 'EXPIRED' ? 'Expirat' : 'Anulat'}
                         </span>
                       </div>
                       <p className="text-slate-400 text-sm">
                         🕐 {formatDateTime(reservation.startTime)} - {formatDateTime(reservation.endTime)}
                       </p>
                       <p className="text-slate-500 text-xs mt-1">
-                        Zona {reservation.spotId.charAt(0)} | Tip: {reservation.spotType || 'Standard'}
+                        Locul #{reservation.spotNumber || reservation.spotId}
                       </p>
                     </div>
-                    {reservation.status === 'active' && (
+                    {reservation.status === 'ACTIVE' && (
                       <button
                         onClick={() => handleCancelReservation(reservation.id)}
                         className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 border border-red-500/30 hover:border-red-500/50 whitespace-nowrap"

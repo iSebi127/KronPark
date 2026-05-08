@@ -109,11 +109,12 @@ describe('Login Page', () => {
   it('calls onAuthSuccess and navigates on successful login', async () => {
     // ARRANGE
     const mockUserData = { id: 1, email: 'user@test.com', fullName: 'Test User' };
+    const mockToken = 'mock-jwt-token';
 
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ user: mockUserData }),
+        json: () => Promise.resolve({ user: mockUserData, token: mockToken }),
       })
     );
 
@@ -127,7 +128,7 @@ describe('Login Page', () => {
 
     // ASSERT
     await waitFor(() => {
-      expect(mockOnAuthSuccess).toHaveBeenCalledWith(mockUserData);
+      expect(mockOnAuthSuccess).toHaveBeenCalledWith(mockUserData, mockToken);
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
@@ -227,7 +228,7 @@ describe('Login Page', () => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ user: {} }),
+        json: () => Promise.resolve({ user: {}, token: 'test' }),
       })
     );
 
@@ -247,8 +248,7 @@ describe('Login Page', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-          }),
-          credentials: 'include',
+          })
         })
       );
     });
