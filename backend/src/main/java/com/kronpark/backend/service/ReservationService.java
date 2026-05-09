@@ -56,6 +56,7 @@ public class ReservationService {
         return ReservationResponse.from(reservationRepository.save(reservation));
     }
 
+    @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -98,5 +99,20 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
 
         return ReservationResponse.from(reservationRepository.save(reservation));
+    }
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void notifyUpcomingExpirations() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime tenMinutesFromNow = now.plusMinutes(10);
+
+        List<Reservation> toNotify = reservationRepository.findReservationsToNotify(now, tenMinutesFromNow);
+
+        for (Reservation reservation : toNotify) {
+            System.out.println(" To: " + reservation.getUser().getEmail() +
+                    " Reservation for parking spot " + reservation.getParkingSpot().getSpotNumber() +
+                    " expires in less than 10 minutes!");
+            reservation.setNotified(true);
+        }
     }
 }

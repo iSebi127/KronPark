@@ -41,8 +41,11 @@ function App() {
     }
   }, []);
 
-  const handleAuthSuccess = (user) => {
+  const handleAuthSuccess = (user, token) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
+    if (token) {
+      localStorage.setItem('jwtToken', token);
+    }
     setIsLoggedIn(true);
     setCurrentUser(user);
   };
@@ -51,7 +54,9 @@ function App() {
     try {
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+        }
       });
     } catch (error) {
       console.error(error);
@@ -59,6 +64,7 @@ function App() {
       setIsLoggedIn(false);
       setCurrentUser(null);
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('jwtToken');
     }
   };
 

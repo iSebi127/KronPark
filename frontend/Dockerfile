@@ -13,6 +13,12 @@ COPY . .
 
 RUN npm run build
 
+# Stage pentru teste
+FROM node:20-alpine AS tester
+WORKDIR /app
+COPY --from=builder /app /app
+CMD ["npm", "run", "test", "--", "--run"]
+
 FROM node:20-alpine
 
 WORKDIR /app

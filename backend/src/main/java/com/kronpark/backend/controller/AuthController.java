@@ -4,7 +4,6 @@ import com.kronpark.backend.dto.AuthResponse;
 import com.kronpark.backend.dto.LoginRequest;
 import com.kronpark.backend.dto.RegisterRequest;
 import com.kronpark.backend.service.AuthService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,13 +28,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
-        return ResponseEntity.ok(authService.login(request, session));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpSession session) {
-        authService.logout(session);
+    public ResponseEntity<Void> logout() {
+        authService.logout();
         return ResponseEntity.noContent().build();
     }
 }

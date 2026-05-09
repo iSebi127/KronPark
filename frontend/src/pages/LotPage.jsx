@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import HighZoomParkingMap from '../components/HighZoomParkingMap';
 import PARKING_LOTS from '../data/parkingLots';
+import apiClient from '../apiClient';
 
 const LotPage = () => {
   const { id } = useParams();
@@ -72,32 +73,45 @@ const LotPage = () => {
     navigate('/map');
   }, [id, navigate]);
 
-  const handleReserve = (spotId) => {
+  const handleReserve = async (spotId) => {
     try {
       const now = new Date();
-      const reservation = {
-        id: `${id}-${spotId}-${now.getTime()}`,
-        lotId: id,
-        spotId,
-        date: now.toISOString(),
-        startTime: now.toISOString(),
-        endTime: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
-        status: 'active',
-      };
+      const startTime = new Date(now.getTime() + 5 * 60 * 1000); // starts in 5 minutes
+      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h duration
 
-      const raw = localStorage.getItem('reservations');
-      let arr = [];
+      // În loc să ghicim ID-ul numeric (care poate fi volatil între restartări Docker),
+      // căutăm ID-ul real al locului folosind codul său (ex: A1, P0-1).
+      let resolvedSpotId = null;
       try {
-        arr = raw ? JSON.parse(raw) : [];
+          const spotRes = await apiClient(`/api/parking-spots/${spotId}`);
+          if (spotRes.ok) {
+              const spotData = await spotRes.json();
+              resolvedSpotId = spotData.id;
+          }
       } catch (e) {
-        arr = [];
+          console.warn('Nu s-a putut rezolva codul locului via API:', e);
       }
-      arr.push(reservation);
-      localStorage.setItem('reservations', JSON.stringify(arr));
 
-      navigate('/dashboard');
+      const spotNumericId = resolvedSpotId || 1;
+
+      const response = await apiClient('/api/reservations', {
+        method: 'POST',
+        body: JSON.stringify({
+          parkingSpotId: spotNumericId,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        navigate('/dashboard');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Eroare la crearea rezervării');
+      }
     } catch (err) {
       console.error('Could not save reservation', err);
+      alert('Nu s-a putut contacta serverul');
     }
   };
 

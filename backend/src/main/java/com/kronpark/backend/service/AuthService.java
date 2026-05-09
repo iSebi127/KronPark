@@ -9,14 +9,11 @@ import com.kronpark.backend.entity.UserRole;
 import com.kronpark.backend.exception.DuplicateResourceException;
 import com.kronpark.backend.exception.ResourceNotFoundException;
 import com.kronpark.backend.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,15 +23,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -50,10 +50,11 @@ public class AuthService {
         user.setRole(UserRole.USER);
 
         User savedUser = userRepository.save(user);
-        return new AuthResponse("Account created successfully", UserResponse.from(savedUser));
+        String token = jwtService.generateToken(savedUser);
+        return new AuthResponse("Account created successfully", UserResponse.from(savedUser), token);
     }
 
-    public AuthResponse login(LoginRequest request, HttpSession session) {
+    public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email().trim().toLowerCase(),
@@ -61,19 +62,13 @@ public class AuthService {
                 )
         );
 
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        User user = (User) authentication.getPrincipal();
+        String token = jwtService.generateToken(user);
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found after login"));
-
-        return new AuthResponse("Login successful", UserResponse.from(user));
+        return new AuthResponse("Login successful", UserResponse.from(user), token);
     }
 
-    public void logout(HttpSession session) {
-        session.invalidate();
+    public void logout() {
         SecurityContextHolder.clearContext();
     }
 
