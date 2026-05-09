@@ -1,0 +1,11 @@
+.git
+.idea
+*.log
+*.tmp
+*.env
+docker-compose.yml
+HELP.md
+README.md
+readme.md
+target
+Dockerfile

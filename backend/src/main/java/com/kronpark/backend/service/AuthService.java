@@ -1,0 +1,80 @@
+package com.kronpark.backend.service;
+
+import com.kronpark.backend.dto.AuthResponse;
+import com.kronpark.backend.dto.LoginRequest;
+import com.kronpark.backend.dto.RegisterRequest;
+import com.kronpark.backend.dto.UserResponse;
+import com.kronpark.backend.entity.User;
+import com.kronpark.backend.entity.UserRole;
+import com.kronpark.backend.exception.DuplicateResourceException;
+import com.kronpark.backend.exception.ResourceNotFoundException;
+import com.kronpark.backend.repository.UserRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager,
+            JwtService jwtService
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+    }
+
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email().trim().toLowerCase())) {
+            throw new DuplicateResourceException("An account with this email already exists");
+        }
+
+        User user = new User();
+        user.setFullName(request.fullName().trim());
+        user.setEmail(request.email().trim().toLowerCase());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRole(UserRole.USER);
+
+        User savedUser = userRepository.save(user);
+        String token = jwtService.generateToken(savedUser);
+        return new AuthResponse("Account created successfully", UserResponse.from(savedUser), token);
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email().trim().toLowerCase(),
+                        request.password()
+                )
+        );
+
+        User user = (User) authentication.getPrincipal();
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse("Login successful", UserResponse.from(user), token);
+    }
+
+    public void logout() {
+        SecurityContextHolder.clearContext();
+    }
+
+    public UserResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user was not found"));
+        return UserResponse.from(user);
+    }
+}
