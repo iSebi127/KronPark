@@ -2,6 +2,7 @@ package com.kronpark.backend.service;
 
 import com.kronpark.backend.dto.ParkingSpotResponse;
 import com.kronpark.backend.entity.ParkingSpot;
+import com.kronpark.backend.entity.SpotStatus;
 import com.kronpark.backend.exception.ResourceNotFoundException;
 import com.kronpark.backend.repository.ParkingSpotRepository;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,15 @@ public class ParkingSpotService {
     }
 
     public List<ParkingSpotResponse> getAllSpots() {
+        // Citim statusul direct din baza de date.
+        // createReservation() si cancelReservation() mentin campul spot.status corect.
         return parkingSpotRepository.findAll()
                 .stream()
-                .map(ParkingSpotResponse::from)
+                .map(spot -> new ParkingSpotResponse(
+                        spot.getId(),
+                        spot.getSpotNumber(),
+                        spot.getStatus()
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -36,11 +43,11 @@ public class ParkingSpotService {
             throw new com.kronpark.backend.exception.DuplicateResourceException("Parking spot already exists");
         }
 
-        com.kronpark.backend.entity.ParkingSpot spot = new com.kronpark.backend.entity.ParkingSpot();
+        ParkingSpot spot = new ParkingSpot();
         spot.setSpotNumber(request.spotNumber());
-        spot.setStatus(com.kronpark.backend.entity.SpotStatus.AVAILABLE);
+        spot.setStatus(SpotStatus.AVAILABLE);
 
-        com.kronpark.backend.entity.ParkingSpot savedSpot = parkingSpotRepository.save(spot);
+        ParkingSpot savedSpot = parkingSpotRepository.save(spot);
 
         return ParkingSpotResponse.from(savedSpot);
     }
