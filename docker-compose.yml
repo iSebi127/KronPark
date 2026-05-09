@@ -18,11 +18,10 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
-<<<<<<< HEAD
+
       args:
         REACT_APP_API_URL: http://localhost:8080
-=======
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
+
     container_name: kronpark-frontend
     depends_on:
       - backend
@@ -72,14 +71,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-<<<<<<< HEAD
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kronpark"]
       interval: 5s
       timeout: 5s
       retries: 10
-=======
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
+
 
 volumes:
   postgres_data:
