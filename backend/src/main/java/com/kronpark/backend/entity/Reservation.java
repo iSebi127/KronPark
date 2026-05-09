@@ -34,4 +34,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
+
+    @Column(name = "is_notified", nullable = false)
+    private boolean notified = false;
 }

@@ -12,17 +12,16 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // On mount: auto-sign-in if there's a saved user (i.e. user didn't explicitly log out)
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('currentUser');
       if (savedUser) {
         setIsLoggedIn(true);
+        setCurrentUser(JSON.parse(savedUser));
       }
 
-      // Development helper: allow visiting the site with ?autoLogin=true to auto-login
-      // This only runs in development (NODE_ENV !== 'production') to avoid changing production behavior
       if (process.env.NODE_ENV === 'development') {
         try {
           const params = new URLSearchParams(window.location.search);
@@ -31,41 +30,60 @@ function App() {
             const devUser = { id: 'dev', name: 'Developer', email: 'dev@example.com' };
             localStorage.setItem('currentUser', JSON.stringify(devUser));
             setIsLoggedIn(true);
+            setCurrentUser(devUser);
           }
         } catch (err) {
-          // ignore URL parsing errors in weird environments
-          console.warn('Auto-login check failed', err);
+          console.warn(err);
         }
       }
     } catch (e) {
-      // ignore localStorage access errors
-      console.warn('Could not access localStorage on mount', e);
+      console.warn(e);
     }
   }, []);
 
-  const handleAuthSuccess = (user) => {
+  const handleAuthSuccess = (user, token) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
+    if (token) {
+      localStorage.setItem('jwtToken', token);
+    }
     setIsLoggedIn(true);
+    setCurrentUser(user);
   };
 
   const handleLogout = async () => {
     try {
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+        }
       });
     } catch (error) {
-      console.error('Logout request failed', error);
+      console.error(error);
     } finally {
       setIsLoggedIn(false);
+      setCurrentUser(null);
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('jwtToken');
     }
+  };
+
+  const getUserFullName = () => {
+    if (!currentUser) return "";
+    if (currentUser.firstName && currentUser.lastName) return `${currentUser.firstName} ${currentUser.lastName}`;
+    if (currentUser.fullName) return currentUser.fullName;
+    if (currentUser.name) return currentUser.name;
+    return "Contul meu"; 
   };
 
   return (
     <BrowserRouter>
       <div className="bg-slate-950 text-white min-h-screen flex flex-col">
-        <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+        <Navbar 
+          isLoggedIn={isLoggedIn} 
+          onLogout={handleLogout} 
+          userName={getUserFullName()} 
+        />
 
         <div className="flex-1">
           <Routes>

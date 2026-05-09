@@ -14,11 +14,25 @@ public record ReservationResponse(
         ReservationStatus status
 ) {
     public static ReservationResponse from(Reservation reservation) {
+        if (reservation == null) return null;
+        
+        Long spotId = null;
+        String spotNumber = null;
+        if (reservation.getParkingSpot() != null) {
+            spotId = reservation.getParkingSpot().getId();
+            spotNumber = reservation.getParkingSpot().getSpotNumber();
+        }
+
+        String userEmail = null;
+        if (reservation.getUser() != null) {
+            userEmail = reservation.getUser().getEmail();
+        }
+
         return new ReservationResponse(
                 reservation.getId(),
-                reservation.getParkingSpot().getId(),
-                reservation.getParkingSpot().getSpotNumber(),
-                reservation.getUser().getEmail(),
+                spotId,
+                spotNumber,
+                userEmail,
                 reservation.getStartTime(),
                 reservation.getEndTime(),
                 reservation.getStatus()

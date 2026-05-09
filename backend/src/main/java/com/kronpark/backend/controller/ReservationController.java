@@ -32,4 +32,12 @@ public class ReservationController {
     public List<ReservationResponse> getMyReservations(Authentication authentication) {
         return reservationService.getMyReservations(authentication.getName());
     }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ReservationResponse> cancelReservation(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(reservationService.cancelReservation(id, authentication.getName()));
+    }
 }
