@@ -1,9 +1,13 @@
 describe("Parking map flows", () => {
   beforeEach(() => {
-    cy.intercept("GET", "**/api/parking-spots/*", {
+    cy.intercept("GET", "**/api/parking-spots", {
       statusCode: 200,
-      body: { id: 101, spotCode: "P0-1" },
-    }).as("getSpot");
+      body: [
+        { id: 1, spotNumber: "A1", status: "AVAILABLE" },
+        { id: 2, spotNumber: "A2", status: "AVAILABLE" },
+        { id: 3, spotNumber: "A3", status: "RESERVED" },
+      ],
+    }).as("getSpots");
 
     cy.intercept("POST", "**/api/reservations", {
       statusCode: 201,
@@ -12,7 +16,15 @@ describe("Parking map flows", () => {
 
     cy.intercept("GET", "**/api/reservations/my", {
       statusCode: 200,
-      body: [{ id: 1, spotId: "P0-1", status: "ACTIVE", startTime: new Date().toISOString(), endTime: new Date().toISOString() }],
+      body: [
+        {
+          id: 1,
+          spotNumber: "A1",
+          status: "ACTIVE",
+          startTime: new Date().toISOString(),
+          endTime: new Date().toISOString(),
+        },
+      ],
     }).as("getDashboardData");
 
     cy.visit("/lots/lot-centrala", {
@@ -41,7 +53,9 @@ describe("Parking map flows", () => {
         .first()
         .click({ force: true });
 
-    cy.wait("@getSpot");
+    cy.contains('button', 'Confirma rezervarea').click();
+
+    cy.wait("@getSpots");
     cy.wait("@postReservation");
     cy.wait("@getDashboardData");
 

@@ -42,7 +42,6 @@ export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', 
     if (status !== 'free') return;
     setSelected(cell.label);
     onSelect && onSelect(cell.label);
-    console.log('Selected spot:', cell.label);
   }
 
   const Arrow = ({ dir = 'right' }) => {

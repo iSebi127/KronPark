@@ -40,26 +40,36 @@ function generateLotLayout(seed = 0) {
 export default function ParkingLotsMap() {
   const [activeModalLot, setActiveModalLot] = useState(null);
   
-  // STATE-URI NOI PENTRU FILTRARE
+  // STATE-URI PENTRU FILTRARE ȘI TRAFIC
   const [showTraffic, setShowTraffic] = useState(false);
   const [showPublic, setShowPublic] = useState(true);
   const [showPrivate, setShowPrivate] = useState(true);
 
-  // AICI PUI CHEIA TA DE LA TOMTOM
   const TOMTOM_API_KEY = "5XDMjEY4Np7UrxSdsIA3DSQqX3fhb1BS"; 
 
+  // REPARAT: Am curățat logica greșită adusă de conflictul Git. 
+  // Funcția face acum strict ce trebuie: deschide grila de locuri.
   const openLotModal = (lot, index) => {
-    const layout = generateLotLayout(index);
-    setActiveModalLot({ ...lot, layout });
+    try {
+      const layout = generateLotLayout(index);
+      setActiveModalLot({ ...lot, layout });
+    } catch (e) {
+      console.warn('Could not generate layout', e);
+    }
   };
 
   const handleCloseModal = () => setActiveModalLot(null);
 
-  const handleReserve = async (spotId) => {
+  // REPARAT: Am adus logica de rezolvare a ID-ului înapoi unde îi este locul
+  const handleReserve = async (spotId, customStartTime, customEndTime) => {
     try {
+      // Dacă modalul nu trimite orele exacte, le generăm pe cele default (+5 minute, durata 1h)
       const now = new Date();
-      const startTime = new Date(now.getTime() + 5 * 60 * 1000);
-      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+      const defaultStartTime = new Date(now.getTime() + 5 * 60 * 1000);
+      const defaultEndTime = new Date(defaultStartTime.getTime() + 60 * 60 * 1000);
+
+      const startTime = customStartTime || defaultStartTime.toISOString();
+      const endTime = customEndTime || defaultEndTime.toISOString();
 
       let resolvedSpotId = null;
       try {
@@ -81,14 +91,15 @@ export default function ParkingLotsMap() {
           console.warn(e);
       }
 
-      const spotNumericId = resolvedSpotId || 1;
+      // Fallback de siguranță pentru ID
+      const spotNumericId = resolvedSpotId || (typeof spotId === 'number' ? spotId : 1);
 
       const response = await apiClient('/api/reservations', {
         method: 'POST',
         body: JSON.stringify({
           parkingSpotId: spotNumericId,
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
+          startTime,
+          endTime,
         }),
       });
 
@@ -96,7 +107,7 @@ export default function ParkingLotsMap() {
         alert('Rezervare creată cu succes!');
         setActiveModalLot(null);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         alert(errorData.message || 'Eroare la crearea rezervării');
       }
     } catch (err) {
@@ -144,7 +155,7 @@ export default function ParkingLotsMap() {
             👤 Private
           </button>
 
-          <div className="w-px h-8 bg-slate-700 mx-1 hidden md:block"></div> {/* Separator vizual */}
+          <div className="w-px h-8 bg-slate-700 mx-1 hidden md:block"></div>
 
           <button 
             onClick={() => setShowTraffic(!showTraffic)}
@@ -167,7 +178,7 @@ export default function ParkingLotsMap() {
             attribution='&copy; OpenStreetMap contributors' 
           />
 
-          {/* Stratul de trafic de la TomTom (apare doar dacă showTraffic e true) */}
+          {/* Stratul de trafic de la TomTom */}
           {showTraffic && TOMTOM_API_KEY !== "PUNE_CHEIA_TA_AICI" && (
             <TileLayer
               url={`https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=${TOMTOM_API_KEY}`}
@@ -176,7 +187,7 @@ export default function ParkingLotsMap() {
             />
           )}
 
-          {/* Folosim array-ul filtrat (filteredLots) în loc de PARKING_LOTS */}
+          {/* Folosim array-ul filtrat */}
           {filteredLots.map((lot, idx) => (
             <Marker
               key={lot.id}
@@ -216,7 +227,12 @@ export default function ParkingLotsMap() {
       </div>
 
       {activeModalLot && (
-        <ParkingLotModal lot={activeModalLot} layout={activeModalLot.layout} onClose={handleCloseModal} onReserve={handleReserve} />
+        <ParkingLotModal
+          lot={activeModalLot}
+          layout={activeModalLot.layout}
+          onClose={handleCloseModal}
+          onReserve={handleReserve}
+        />
       )}
     </div>
   );
