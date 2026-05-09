@@ -1,5 +1,3 @@
-import { setupServer } from 'msw/node';
-import { rest } from 'msw';
 import '@testing-library/jest-dom';
 
 export const server = setupServer(
@@ -65,13 +63,3 @@ export const server = setupServer(
     );
   })
 );
-
-// Enable API mocking before all tests
-beforeAll(() => server.listen());
-
-// Reset request handlers after each test
-afterEach(() => server.resetHandlers());
-
-// Clean up after all tests
-afterAll(() => server.close());
-
