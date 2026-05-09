@@ -1,11 +1,11 @@
 package com.kronpark.backend.controller;
 
+import com.kronpark.backend.dto.UpdateUserRequest;
 import com.kronpark.backend.dto.UserResponse;
 import com.kronpark.backend.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -20,5 +20,11 @@ public class UserController {
     @GetMapping("/me")
     public UserResponse me(Authentication authentication) {
         return authService.getCurrentUser(authentication.getName());
+    }
+    @PutMapping("/profile")
+    public UserResponse updateProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateUserRequest request) {
+        return authService.updateProfile(authentication.getName(), request);
     }
 }
