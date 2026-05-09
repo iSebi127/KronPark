@@ -146,7 +146,6 @@ function Dashboard({ onLogout }) {
           >
             Informații Profil
           </button>
-<<<<<<< HEAD
           <button
             onClick={() => setActiveTab('private')}
             className={`px-4 py-3 font-bold text-sm transition-all duration-300 border-b-2 ${
@@ -157,8 +156,6 @@ function Dashboard({ onLogout }) {
           >
             🅿️ Vezi locuri private
           </button>
-=======
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         </div>
         {/* Content */}
         {activeTab === 'overview' && (
@@ -225,12 +222,9 @@ function Dashboard({ onLogout }) {
             )}
           </div>
         )}
-<<<<<<< HEAD
         {activeTab === 'private' && (
           <PrivateSpotsInline navigate={navigate} />
         )}
-=======
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         {activeTab === 'profile' && (
           <div data-cy="dashboard-profile-panel" className="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
             <h2 className="text-2xl font-black text-white mb-8">Informații Profil</h2>
@@ -288,7 +282,6 @@ function Dashboard({ onLogout }) {
   );
 }
 
-<<<<<<< HEAD
 function PrivateSpotsInline({ navigate }) {
   const [spots, setSpots] = useState([]);
   const [search, setSearch] = useState('');
@@ -402,7 +395,5 @@ function PrivateSpotsInline({ navigate }) {
   );
 }
 
-=======
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
 export default Dashboard;
 

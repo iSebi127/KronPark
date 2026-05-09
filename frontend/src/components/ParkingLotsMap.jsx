@@ -14,17 +14,10 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-<<<<<<< HEAD
 // Fallback generator only used if API call fails
 function generateFallbackLayout(seed = 0) {
   const spots = [];
   const rows = 3 + (seed % 2);
-=======
-// Simple generator re-used: small layout scaled by lot index
-function generateLotLayout(seed = 0) {
-  const spots = [];
-  const rows = 3 + (seed % 2); // vary a bit
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
   const cols = 8 + (seed % 4);
   const startY = 100;
   const startX = 100 + (seed * 20);
@@ -48,7 +41,6 @@ function generateLotLayout(seed = 0) {
 
 export default function ParkingLotsMap() {
   const [activeModalLot, setActiveModalLot] = useState(null);
-<<<<<<< HEAD
   const [loadingLot, setLoadingLot] = useState(false);
 
   const openLotModal = async (lot, index) => {
@@ -91,17 +83,10 @@ export default function ParkingLotsMap() {
     } finally {
       setLoadingLot(false);
     }
-=======
-
-  const openLotModal = (lot, index) => {
-    const layout = generateLotLayout(index);
-    setActiveModalLot({ ...lot, layout });
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
   };
 
   const handleCloseModal = () => setActiveModalLot(null);
 
-<<<<<<< HEAD
   // spotId = ID-ul real din DB, startTime/endTime = ISO strings din formular
   const handleReserve = async (spotId, startTime, endTime) => {
     try {
@@ -111,64 +96,14 @@ export default function ParkingLotsMap() {
           parkingSpotId: spotId,
           startTime,
           endTime,
-=======
-  const handleReserve = async (spotId) => {
-    try {
-      const now = new Date();
-      const startTime = new Date(now.getTime() + 5 * 60 * 1000); // starts in 5 minutes
-      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h duration
-
-      // În loc să ghicim ID-ul numeric (care poate fi volatil între restartări Docker),
-      // căutăm ID-ul real al locului folosind codul său (ex: A1, P0-1).
-      let resolvedSpotId = null;
-      try {
-          // Normalizăm spotId dacă vine din layout-ul de pe hartă (P0-1 -> A1 pentru simplitate în maparea demonstrativă)
-          let searchCode = spotId;
-          if (typeof spotId === 'string' && spotId.includes('-')) {
-              // Mapăm P{seed}-{counter} pe A/B/C/D + counter pentru a găsi ceva în DataInitializer
-              const counter = parseInt(spotId.split('-')[1]);
-              const rowIdx = Math.floor((counter - 1) / 12);
-              const row = ["A", "B", "C", "D"][rowIdx] || "A";
-              const num = ((counter - 1) % 12) + 1;
-              searchCode = `${row}${num}`;
-          }
-
-          const spotRes = await apiClient(`/api/parking-spots/${searchCode}`);
-          if (spotRes.ok) {
-              const spotData = await spotRes.json();
-              resolvedSpotId = spotData.id;
-          }
-      } catch (e) {
-          console.warn('Nu s-a putut rezolva codul locului, folosim fallback:', e);
-      }
-
-      const spotNumericId = resolvedSpotId || 1;
-
-      const response = await apiClient('/api/reservations', {
-        method: 'POST',
-        body: JSON.stringify({
-          parkingSpotId: spotNumericId,
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         }),
       });
 
       if (response.ok) {
-<<<<<<< HEAD
         alert('Rezervare creată cu succes!');
         setActiveModalLot(null);
       } else {
         const errorData = await response.json().catch(() => ({}));
-=======
-        // Option 1: Redirect to dashboard
-        // window.location.href = '/dashboard';
-        // Option 2: Just notify (since this is a map modal)
-        alert('Rezervare creată cu succes!');
-        setActiveModalLot(null);
-      } else {
-        const errorData = await response.json();
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         alert(errorData.message || 'Eroare la crearea rezervării');
       }
     } catch (err) {
@@ -184,13 +119,9 @@ export default function ParkingLotsMap() {
           <h1 className="text-2xl font-bold text-slate-100">Harta Parcări Brașov</h1>
           <p className="text-slate-400 text-sm">Alege o parcare pentru a vedea layoutul ei</p>
         </div>
-<<<<<<< HEAD
         <div className="text-sm text-slate-400">
           {loadingLot ? 'Se încarcă locurile...' : 'Click marker pentru detalii'}
         </div>
-=======
-        <div className="text-sm text-slate-400">Click marker pentru detalii</div>
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
       </div>
 
       <div className="h-[70vh] rounded-xl overflow-hidden border border-slate-800 relative z-0">
@@ -208,16 +139,12 @@ export default function ParkingLotsMap() {
       </div>
 
       {activeModalLot && (
-<<<<<<< HEAD
         <ParkingLotModal
           lot={activeModalLot}
           layout={activeModalLot.layout}
           onClose={handleCloseModal}
           onReserve={handleReserve}
         />
-=======
-        <ParkingLotModal lot={activeModalLot} layout={activeModalLot.layout} onClose={handleCloseModal} onReserve={handleReserve} />
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
       )}
     </div>
   );

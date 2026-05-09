@@ -52,11 +52,7 @@ function Landing({ isLoggedIn }) {
                 >
                   Autentificare
                 </button>
-<<<<<<< HEAD
               </>
-=======
-              </  >
->>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
             )}
           </div>
         </div>
