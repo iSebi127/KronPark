@@ -38,7 +38,11 @@ function generateDefaultLayout() {
 const statusToOptions = (status) => {
   if (status === 'free') return { color: '#047857', weight: 1, fillColor: '#10b981', fillOpacity: 0.45, opacity: 1 };
   if (status === 'occupied') return { color: '#991b1b', weight: 1, fillColor: '#ef4444', fillOpacity: 0.5, opacity: 1 };
+<<<<<<< HEAD
   if (status === 'reserved') return { color: '#991b1b', weight: 2, fillColor: '#ef4444', fillOpacity: 0.65, opacity: 1 };
+=======
+  if (status === 'reserved') return { color: '#7c2d12', weight: 1, fillColor: '#f59e0b', fillOpacity: 0.5, opacity: 1 };
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
   return { color: '#334155', weight: 1, fillColor: '#94a3b8', fillOpacity: 0.2, opacity: 0.8 };
 };
 

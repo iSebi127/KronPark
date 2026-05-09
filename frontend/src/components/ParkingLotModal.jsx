@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ParkingGrid from './ParkingGrid';
 
+<<<<<<< HEAD
 // Returneaza data de azi in format YYYY-MM-DD (pentru input type="date")
 function todayString() {
   const d = new Date();
@@ -35,6 +36,8 @@ function toLocalISOString(date) {
   return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
 }
 
+=======
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
 // layout: { spots: [ { id, status, bounds: [[y1,x1],[y2,x2]] }, ... ] }
 export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
   const spots = layout?.spots || [];
@@ -46,6 +49,7 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
 
   const [selectedLabel, setSelectedLabel] = useState(null);
 
+<<<<<<< HEAD
   // Starea formularului de rezervare
   const [showForm, setShowForm] = useState(false);
   const [formDate, setFormDate] = useState(todayString());
@@ -53,6 +57,8 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
   const [formEnd, setFormEnd] = useState(() => addHours(nextQuarterHour(), 1));
   const [formError, setFormError] = useState('');
 
+=======
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
   function pickPattern(id) {
     if (!id) return 'straight';
     let sum = 0;
@@ -174,6 +180,7 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
     return { rows, cols, map, labelToId };
   }, [spotsState, lot?.id]);
 
+<<<<<<< HEAD
   function handleSelectSpot(label) {
     setSelectedLabel(label);
     setShowForm(false);
@@ -221,6 +228,19 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
     setSelectedLabel(null);
 
     if (onReserve) onReserve(spotId, toLocalISOString(startDT), toLocalISOString(endDT));
+=======
+  function reserveById(spotId) {
+    if (!spotId) return;
+    setSpotsState((prev) => prev.map((s) => (s.id === spotId ? { ...s, status: 'reserved' } : s)));
+    if (onReserve) onReserve(spotId);
+  }
+
+  function handleConfirmReserve() {
+    const mapped = schematic.labelToId[selectedLabel];
+    if (!mapped) return;
+    reserveById(mapped);
+    setSelectedLabel(null);
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
   }
 
   return createPortal(
@@ -231,7 +251,10 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
         data-cy="parking-lot-modal"
         onClick={(e) => e.stopPropagation()}
       >
+<<<<<<< HEAD
         {/* Header */}
+=======
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-white" data-cy="parking-lot-title">
@@ -239,6 +262,7 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
             </h2>
             <p className="text-sm text-slate-400">Selecteaza un loc din grila pentru a-l rezerva</p>
           </div>
+<<<<<<< HEAD
           <button
             onClick={() => { if (onClose) onClose(); }}
             data-cy="parking-lot-close"
@@ -249,6 +273,22 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
         </div>
 
         {/* Grid */}
+=======
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (onClose) onClose();
+                window.location.href = '/map';
+              }}
+              data-cy="parking-lot-close"
+              className="px-3 py-1 bg-red-600 rounded text-white"
+            >
+              Iesire pagina
+            </button>
+          </div>
+        </div>
+
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
         <div className="bg-slate-800 rounded-lg p-4">
           <ParkingGrid
             rows={schematic.rows}
@@ -256,6 +296,7 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
             lane={{ type: 'row', index: Math.floor(schematic.rows / 2), direction: 'right' }}
             map={schematic.map}
             labelToId={schematic.labelToId}
+<<<<<<< HEAD
             onSelect={handleSelectSpot}
           />
 
@@ -283,10 +324,44 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
                     onClick={() => setSelectedLabel(null)}
                     className="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg text-slate-200 transition-colors"
                   >
+=======
+            onSelect={(label) => {
+              setSelectedLabel(label);
+            }}
+          />
+          <div className="mt-3 text-sm text-slate-300">
+            {selectedLabel ? (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs text-slate-400">Loc selectat</div>
+                  <div className="text-lg font-bold text-white">{selectedLabel}</div>
+                  <div className="text-sm text-slate-400">
+                    {(() => {
+                      const id = schematic.labelToId[selectedLabel];
+                      const spot = spotsState.find((s) => s.id === id);
+                      return spot ? `Status: ${spot.status}` : 'Loc inactiv';
+                    })()}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleConfirmReserve}
+                    data-cy="parking-lot-reserve"
+                    disabled={
+                      !schematic.labelToId[selectedLabel] ||
+                      spotsState.find((s) => s.id === schematic.labelToId[selectedLabel])?.status !== 'free'
+                    }
+                    className="px-4 py-2 bg-blue-600 rounded text-white"
+                  >
+                    Rezerva ->
+                  </button>
+                  <button onClick={() => setSelectedLabel(null)} className="px-4 py-2 bg-slate-700 rounded text-slate-200">
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
                     Anuleaza
                   </button>
                 </div>
               </div>
+<<<<<<< HEAD
             )}
 
             {selectedLabel && showForm && (
@@ -373,6 +448,10 @@ export default function ParkingLotModal({ lot, layout, onClose, onReserve }) {
                   </button>
                 </div>
               </div>
+=======
+            ) : (
+              <div className="text-sm text-slate-400">Selecteaza un loc din grila pentru a-l rezerva</div>
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
             )}
           </div>
         </div>

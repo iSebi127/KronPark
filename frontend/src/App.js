@@ -7,7 +7,10 @@ import Login from './pages/Login';
 import MapPage from './pages/MapPage';
 import Dashboard from './pages/Dashboard';
 import LotPage from './pages/LotPage';
+<<<<<<< HEAD
 import AddPrivateSpot from './pages/AddPrivateSpot';
+=======
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -92,7 +95,10 @@ function App() {
             <Route path="/map" element={<MapPage />} />
             <Route path="/lots/:id" element={<LotPage />} />
             <Route path="/dashboard" element={isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/" />} />
+<<<<<<< HEAD
             <Route path="/add-private-spot" element={isLoggedIn ? <AddPrivateSpot /> : <Navigate to="/login" />} />
+=======
+>>>>>>> 030d6f99a814180dd131b9c846a09dba4fde03b0
             <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />} />
             <Route path="/signup" element={<Signup onAuthSuccess={handleAuthSuccess} />} />
             <Route path="*" element={<Navigate to="/" />} />
