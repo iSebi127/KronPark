@@ -53,6 +53,8 @@ describe("Parking map flows", () => {
         .first()
         .click({ force: true });
 
+    cy.contains('button', 'Confirma rezervarea').click();
+
     cy.wait("@getSpots");
     cy.wait("@postReservation");
     cy.wait("@getDashboardData");
