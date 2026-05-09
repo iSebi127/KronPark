@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import PARKING_LOTS from '../data/parkingLots';
 import ParkingLotModal from './ParkingLotModal';
 import apiClient from '../apiClient';
 
-// default icon fix for Leaflet in CRA
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -14,10 +13,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Simple generator re-used: small layout scaled by lot index
 function generateLotLayout(seed = 0) {
   const spots = [];
-  const rows = 3 + (seed % 2); // vary a bit
+  const rows = 3 + (seed % 2);
   const cols = 8 + (seed % 4);
   const startY = 100;
   const startX = 100 + (seed * 20);
@@ -41,28 +39,42 @@ function generateLotLayout(seed = 0) {
 
 export default function ParkingLotsMap() {
   const [activeModalLot, setActiveModalLot] = useState(null);
+  
+  // STATE-URI PENTRU FILTRARE ȘI TRAFIC
+  const [showTraffic, setShowTraffic] = useState(false);
+  const [showPublic, setShowPublic] = useState(true);
+  const [showPrivate, setShowPrivate] = useState(true);
 
+  const TOMTOM_API_KEY = "5XDMjEY4Np7UrxSdsIA3DSQqX3fhb1BS"; 
+
+  // REPARAT: Am curățat logica greșită adusă de conflictul Git. 
+  // Funcția face acum strict ce trebuie: deschide grila de locuri.
   const openLotModal = (lot, index) => {
-    const layout = generateLotLayout(index);
-    setActiveModalLot({ ...lot, layout });
+    try {
+      const layout = generateLotLayout(index);
+      setActiveModalLot({ ...lot, layout });
+    } catch (e) {
+      console.warn('Could not generate layout', e);
+    }
   };
 
   const handleCloseModal = () => setActiveModalLot(null);
 
-  const handleReserve = async (spotId) => {
+  // REPARAT: Am adus logica de rezolvare a ID-ului înapoi unde îi este locul
+  const handleReserve = async (spotId, customStartTime, customEndTime) => {
     try {
+      // Dacă modalul nu trimite orele exacte, le generăm pe cele default (+5 minute, durata 1h)
       const now = new Date();
-      const startTime = new Date(now.getTime() + 5 * 60 * 1000); // starts in 5 minutes
-      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h duration
+      const defaultStartTime = new Date(now.getTime() + 5 * 60 * 1000);
+      const defaultEndTime = new Date(defaultStartTime.getTime() + 60 * 60 * 1000);
 
-      // În loc să ghicim ID-ul numeric (care poate fi volatil între restartări Docker),
-      // căutăm ID-ul real al locului folosind codul său (ex: A1, P0-1).
+      const startTime = customStartTime || defaultStartTime.toISOString();
+      const endTime = customEndTime || defaultEndTime.toISOString();
+
       let resolvedSpotId = null;
       try {
-          // Normalizăm spotId dacă vine din layout-ul de pe hartă (P0-1 -> A1 pentru simplitate în maparea demonstrativă)
           let searchCode = spotId;
           if (typeof spotId === 'string' && spotId.includes('-')) {
-              // Mapăm P{seed}-{counter} pe A/B/C/D + counter pentru a găsi ceva în DataInitializer
               const counter = parseInt(spotId.split('-')[1]);
               const rowIdx = Math.floor((counter - 1) / 12);
               const row = ["A", "B", "C", "D"][rowIdx] || "A";
@@ -76,62 +88,151 @@ export default function ParkingLotsMap() {
               resolvedSpotId = spotData.id;
           }
       } catch (e) {
-          console.warn('Nu s-a putut rezolva codul locului, folosim fallback:', e);
+          console.warn(e);
       }
 
-      const spotNumericId = resolvedSpotId || 1;
+      // Fallback de siguranță pentru ID
+      const spotNumericId = resolvedSpotId || (typeof spotId === 'number' ? spotId : 1);
 
       const response = await apiClient('/api/reservations', {
         method: 'POST',
         body: JSON.stringify({
           parkingSpotId: spotNumericId,
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
+          startTime,
+          endTime,
         }),
       });
 
       if (response.ok) {
-        // Option 1: Redirect to dashboard
-        // window.location.href = '/dashboard';
-        // Option 2: Just notify (since this is a map modal)
         alert('Rezervare creată cu succes!');
         setActiveModalLot(null);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         alert(errorData.message || 'Eroare la crearea rezervării');
       }
     } catch (err) {
-      console.error('Error reserving spot:', err);
+      console.error(err);
       alert('Nu s-a putut contacta serverul');
     }
   };
 
+  // Funcție pentru a filtra parcările vizibile pe hartă
+  const filteredLots = PARKING_LOTS.filter((lot) => {
+    if (lot.type === 'public' && showPublic) return true;
+    if (lot.type === 'private' && showPrivate) return true;
+    return false;
+  });
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-6 space-y-6" data-cy="parking-lots-map">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Harta Parcări Brașov</h1>
-          <p className="text-slate-400 text-sm">Alege o parcare pentru a vedea layoutul ei</p>
+          <p className="text-slate-400 text-sm">Filtrează și alege o zonă pentru rezervare</p>
         </div>
-        <div className="text-sm text-slate-400">Click marker pentru detalii</div>
+        
+        {/* BUTOANE PENTRU FILTRARE ȘI TRAFIC */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button 
+            onClick={() => setShowPublic(!showPublic)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+              showPublic 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+            }`}
+          >
+            🏢 Publice
+          </button>
+
+          <button 
+            onClick={() => setShowPrivate(!showPrivate)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+              showPrivate 
+                ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-500/30' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700'
+            }`}
+          >
+            👤 Private
+          </button>
+
+          <div className="w-px h-8 bg-slate-700 mx-1 hidden md:block"></div>
+
+          <button 
+            onClick={() => setShowTraffic(!showTraffic)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
+              showTraffic 
+                ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30' 
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+            }`}
+          >
+            {showTraffic ? '🚦 Ascunde Traficul' : '🚦 Arată Traficul'}
+          </button>
+        </div>
       </div>
 
       <div className="h-[70vh] rounded-xl overflow-hidden border border-slate-800 relative z-0">
-        <MapContainer center={[45.657,25.601]} zoom={13} style={{ height: '100%', width: '100%' }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap contributors' />
+        <MapContainer center={[45.657, 25.601]} zoom={13} style={{ height: '100%', width: '100%' }}>
+          {/* Harta de bază */}
+          <TileLayer 
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+            attribution='&copy; OpenStreetMap contributors' 
+          />
 
-          {PARKING_LOTS.map((lot, idx) => (
+          {/* Stratul de trafic de la TomTom */}
+          {showTraffic && TOMTOM_API_KEY !== "PUNE_CHEIA_TA_AICI" && (
+            <TileLayer
+              url={`https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=${TOMTOM_API_KEY}`}
+              attribution='&copy; TomTom Traffic'
+              opacity={0.8}
+            />
+          )}
+
+          {/* Folosim array-ul filtrat */}
+          {filteredLots.map((lot, idx) => (
             <Marker
               key={lot.id}
               position={lot.coords}
-              eventHandlers={{ click: () => openLotModal(lot, idx) }}
-            />
+              eventHandlers={{ 
+                click: () => {
+                  if (lot.type === 'public') {
+                    openLotModal(lot, idx);
+                  }
+                } 
+              }}
+            >
+              {lot.type === 'private' && (
+                <Popup>
+                  <div className="p-2 min-w-[180px]">
+                    <h3 className="text-blue-600 font-bold border-b border-slate-200 mb-2 pb-1">
+                      {lot.name}
+                    </h3>
+                    <div className="space-y-1 text-sm text-slate-700">
+                      <p>👤 <b>Owner:</b> {lot.ownerName}</p>
+                      <p>🕒 <b>Interval:</b> {lot.interval}</p>
+                      <p>💰 <b>Preț:</b> <span className="text-green-600 font-bold">{lot.price}</span></p>
+                      <p>📍 <b>Locație:</b> {lot.locationDetail}</p>
+                    </div>
+                    <button 
+                      className="mt-3 w-full bg-blue-600 text-white py-1 rounded font-bold text-xs hover:bg-blue-700 transition"
+                      onClick={() => alert(`Ai ales să rezervi locul lui ${lot.ownerName}`)}
+                    >
+                      Rezervă Loc Privat
+                    </button>
+                  </div>
+                </Popup>
+              )}
+            </Marker>
           ))}
         </MapContainer>
       </div>
 
       {activeModalLot && (
-        <ParkingLotModal lot={activeModalLot} layout={activeModalLot.layout} onClose={handleCloseModal} onReserve={handleReserve} />
+        <ParkingLotModal
+          lot={activeModalLot}
+          layout={activeModalLot.layout}
+          onClose={handleCloseModal}
+          onReserve={handleReserve}
+        />
       )}
     </div>
   );

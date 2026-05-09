@@ -1,11 +1,12 @@
 package com.kronpark.backend.repository;
 
+import com.kronpark.backend.entity.ParkingSpot;
 import com.kronpark.backend.entity.Reservation;
 import com.kronpark.backend.entity.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,16 +24,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByUserId(Long userId);
 
-    @Modifying
-    @Query("UPDATE Reservation r SET r.status = :completedStatus WHERE r.status = :activeStatus AND r.endTime <= :now")
-    int updateStatusForExpiredReservations(
-            @Param("activeStatus") ReservationStatus activeStatus,
-            @Param("completedStatus") ReservationStatus completedStatus,
-            @Param("now") LocalDateTime now
-    );
+    List<Reservation> findByStatusAndEndTimeBefore(ReservationStatus status, LocalDateTime time);
+
     @Query("SELECT r FROM Reservation r WHERE r.status = 'ACTIVE' AND r.notified = false AND r.endTime BETWEEN :now AND :targetTime")
     List<Reservation> findReservationsToNotify(
             @Param("now") LocalDateTime now,
             @Param("targetTime") LocalDateTime targetTime
     );
+
+    @Query("SELECT DISTINCT r.parkingSpot FROM Reservation r WHERE r.status = 'ACTIVE' AND r.endTime > :now")
+    List<ParkingSpot> findSpotsWithActiveReservations(@Param("now") LocalDateTime now);
 }
