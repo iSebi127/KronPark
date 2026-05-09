@@ -53,7 +53,7 @@ describe("Parking map flows", () => {
         .first()
         .click({ force: true });
 
-    cy.wait("@getSpot");
+    cy.wait("@getSpots");
     cy.wait("@postReservation");
     cy.wait("@getDashboardData");
 
