@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,16 @@ public class ReservationService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
+        long durationInMinutes = java.time.Duration.between(request.startTime(), request.endTime()).toMinutes();
+
+        if (durationInMinutes <= 0) {
+            throw new IllegalArgumentException("Reservation duration must be greater than 0");
+        }
+
+        if (durationInMinutes % 60 != 0) {
+            throw new IllegalArgumentException("Reservation duration must respect hourly intervals");
+        }
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -42,7 +53,6 @@ public class ReservationService {
             throw new IllegalStateException("The parking spot is already reserved for this interval");
         }
 
-        // Marcam locul ca REZERVAT in baza de date
         spot.setStatus(SpotStatus.RESERVED);
         parkingSpotRepository.save(spot);
 
@@ -73,7 +83,6 @@ public class ReservationService {
     public void autoExpireReservations() {
         LocalDateTime now = LocalDateTime.now();
 
-        // Gaseste rezervarile active cu endTime trecut si elibereaza spoturile
         List<Reservation> expiredReservations = reservationRepository
                 .findByStatusAndEndTimeBefore(ReservationStatus.ACTIVE, now);
 
@@ -86,7 +95,7 @@ public class ReservationService {
 
         if (!expiredReservations.isEmpty()) {
             reservationRepository.saveAll(expiredReservations);
-            System.out.println("Au expirat " + expiredReservations.size() + " rezervari.");
+            System.out.println("There are " + expiredReservations.size() + " expired reservations");
         }
     }
 
@@ -99,9 +108,9 @@ public class ReservationService {
         List<Reservation> toNotify = reservationRepository.findReservationsToNotify(now, tenMinutesFromNow);
 
         for (Reservation reservation : toNotify) {
-            System.out.println("NOTIFICARE -> " + reservation.getUser().getEmail() +
-                    " : Locul " + reservation.getParkingSpot().getSpotNumber() +
-                    " expira in mai putin de 10 minute!");
+            System.out.println("Notification -> " + reservation.getUser().getEmail() +
+                    ": Parking spot " + reservation.getParkingSpot().getSpotNumber() +
+                    " expires in less than 10 minutes!");
             reservation.setNotified(true);
         }
     }
@@ -121,7 +130,6 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
 
-        // Eliberam locul de parcare
         ParkingSpot spot = reservation.getParkingSpot();
         spot.setStatus(SpotStatus.AVAILABLE);
         parkingSpotRepository.save(spot);

@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import HighZoomParkingMap from '../components/HighZoomParkingMap';
 import PARKING_LOTS from '../data/parkingLots';
 import apiClient from '../apiClient';
 
-// Returneaza data de azi in format YYYY-MM-DD
 function todayString() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -13,7 +12,6 @@ function todayString() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Returneaza ora curenta rotunjita la urmatorul sfert de ora
 function nextQuarterHour() {
   const d = new Date();
   d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
@@ -25,7 +23,6 @@ function addHours(timeStr, hours) {
   return `${String((h + hours) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-// Formateaza Date ca string local (fara conversie UTC) pentru backend LocalDateTime
 function toLocalISOString(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,16 +32,38 @@ function toLocalISOString(date) {
   return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
 }
 
+// Genereaza layout specific pentru fiecare parcare
+function generateLayoutForLot(lotMeta, index) {
+  const rows = lotMeta.layout?.rows || (3 + (index % 2));
+  const cols = lotMeta.layout?.cols || (8 + (index % 4));
+  const spots = [];
+  const spotWidth = 120;
+  const spotHeight = 80;
+  const gapX = 14;
+  const gapY = 14;
+  let counter = 1;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x1 = 100 + c * (spotWidth + gapX);
+      const y1 = 100 + r * (spotHeight + gapY);
+      spots.push({
+        id: `${lotMeta.id}-${counter}`,
+        spotNumber: `${lotMeta.layout?.zones?.[r] || String.fromCharCode(65 + r)}${c + 1}`,
+        status: 'free',
+        bounds: [[y1, x1], [y1 + spotHeight, x1 + spotWidth]]
+      });
+      counter++;
+    }
+  }
+  return { spots };
+}
+
 const LotPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lot, setLot] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Spot selectat pentru rezervare
   const [selectedSpotId, setSelectedSpotId] = useState(null);
-
-  // Formular rezervare
   const [formDate, setFormDate] = useState(todayString());
   const [formStart, setFormStart] = useState(nextQuarterHour());
   const [formEnd, setFormEnd] = useState(() => addHours(nextQuarterHour(), 1));
@@ -52,13 +71,13 @@ const LotPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const lotMeta = PARKING_LOTS.find((l) => l.id === id);
+    const lotIndex = PARKING_LOTS.findIndex((l) => l.id === id);
+    const lotMeta = PARKING_LOTS[lotIndex];
     if (!lotMeta) {
       navigate('/map');
       return;
     }
 
-    // Incarcam locurile reale din API
     setLoading(true);
     apiClient('/api/parking-spots')
       .then((res) => {
@@ -66,19 +85,17 @@ const LotPage = () => {
         return res.json();
       })
       .then((spots) => {
-        const cols = 8;
-        const startY = 100;
-        const startX = 100;
-        const spotWidth = 70;
-        const spotHeight = 50;
+        const cols = lotMeta.layout?.cols || 8;
+        const spotWidth = 120;
+        const spotHeight = 80;
         const gapX = 14;
         const gapY = 14;
 
         const layoutSpots = spots.map((spot, i) => {
           const c = i % cols;
           const r = Math.floor(i / cols);
-          const x1 = startX + c * (spotWidth + gapX);
-          const y1 = startY + r * (spotHeight + gapY);
+          const x1 = 100 + c * (spotWidth + gapX);
+          const y1 = 100 + r * (spotHeight + gapY);
           return {
             id: spot.id,
             spotNumber: spot.spotNumber,
@@ -90,26 +107,13 @@ const LotPage = () => {
         setLot({ ...lotMeta, layout: { spots: layoutSpots } });
       })
       .catch(() => {
-        // Fallback cu layout fals daca API nu e disponibil
-        const seed = PARKING_LOTS.findIndex((l) => l.id === id);
-        const spots = [];
-        const rows = 3 + (seed % 2);
-        const cols = 8 + (seed % 4);
-        let counter = 1;
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            const x1 = 100 + c * 84;
-            const y1 = 100 + r * 64;
-            spots.push({ id: `P${seed}-${counter}`, status: 'free', bounds: [[y1, x1], [y1 + 50, x1 + 70]] });
-            counter++;
-          }
-        }
-        setLot({ ...lotMeta, layout: { spots } });
+        // Fallback cu layout specific fiecarei parcari
+        const specificLayout = generateLayoutForLot(lotMeta, lotIndex);
+        setLot({ ...lotMeta, layout: specificLayout });
       })
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
-  // Apelat de HighZoomParkingMap cand userul apasa pe un loc liber
   const handleSpotSelect = (spotId) => {
     setSelectedSpotId(spotId);
     setFormError('');
@@ -164,31 +168,35 @@ const LotPage = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pt-24" data-cy="lot-layout-page">
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold" data-cy="lot-title">
               {lot?.name || 'Parcare'}
             </h1>
-            <p className="text-slate-400 text-sm">Click pe un loc verde pentru a-l rezerva</p>
+            <p className="text-slate-400 text-sm">
+              {lot?.layout?.description || 'Click pe un loc verde pentru a-l rezerva'}
+            </p>
+            {lot?.totalSpots && (
+              <p className="text-cyan-400 text-sm mt-1">
+                Total locuri: {lot.totalSpots}
+              </p>
+            )}
           </div>
           <button
             onClick={() => navigate('/map')}
             data-cy="lot-back-to-map"
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg transition-colors"
           >
-            ← Inapoi la harta
+            Inapoi la harta
           </button>
         </div>
 
-        {/* Harta */}
         {loading ? (
           <div className="text-slate-400" data-cy="lot-loading">Se incarca locurile...</div>
         ) : lot ? (
           <HighZoomParkingMap layout={lot.layout} onReserve={handleSpotSelect} />
         ) : null}
 
-        {/* Formular rezervare — apare sub harta cand un loc e selectat */}
         {selectedSpotId && !loading && (
           <div className="mt-6 bg-slate-800 border border-slate-600 rounded-xl p-5">
             <h3 className="text-white font-semibold text-lg mb-4">
@@ -232,7 +240,6 @@ const LotPage = () => {
               </div>
             </div>
 
-            {/* Durata calculata */}
             {formStart && formEnd && (() => {
               const start = new Date(`${formDate}T${formStart}:00`);
               const end = new Date(`${formDate}T${formEnd}:00`);
@@ -274,3 +281,4 @@ const LotPage = () => {
 };
 
 export default LotPage;
+

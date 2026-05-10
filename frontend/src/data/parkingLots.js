@@ -1,26 +1,4 @@
-// List of sample parking lots (shared source)
 const PARKING_LOTS = [
-  // --- Parcările tale existente ---
-  {
-    id: 'lot-centrala',
-    name: 'Parcare Centrală Brașov',
-    coords: [45.657, 25.601],
-    type: 'public'
-  },
-  {
-    id: 'lot-teatru',
-    name: 'Parcare Teatrul Dramatic',
-    coords: [45.652, 25.607],
-    type: 'public'
-  },
-  {
-    id: 'lot-sf',
-    name: 'Parcare Sf. Nicolae',
-    coords: [45.658, 25.596],
-    type: 'public'
-  },
-
-  // --- Parcările noi cu coordonatele tale exacte ---
   {
     id: 'lot-civic',
     name: 'Parcare Centru Civic',
@@ -39,27 +17,45 @@ const PARKING_LOTS = [
     coords: [45.671712535401255, 25.61461473065372], 
     type: 'public'
   },
+  {
+    id: 'lot-centrala',
+    name: 'Parcare Centrală Brașov',
+    coords: [45.657, 25.601],
+    type: 'public'
+  },
 
-  // --- LOCURILE PRIVATE ADĂUGATE (Owneri) ---
   { 
     id: 'privat-1', 
-    name: 'Loc de parcare privat', 
-    coords: [45.6542, 25.5891], 
     type: 'private',
-    ownerName: 'Alexandru G.', 
-    interval: '08:00 - 17:00', 
-    price: '4 RON/h',
-    locationDetail: 'Strada Lungă, nr. 10'
+    ownerName: 'Alexandru Ionescu',     // nume proprietar
+    coords: [45.6542, 25.5891],        // latitudine/longitudine
+    interval: '08:00 - 18:00',         // interval disponibil
+    status: 'Disponibil',              // status
+    price: '5 RON/h',                  // preț
+    zone: 'Centru Vechi',              // zonă
+    locationDetail: 'Strada Lungă nr. 12' 
   },
   { 
     id: 'privat-2', 
-    name: 'Parcare Owner', 
-    coords: [45.6321, 25.6025], 
     type: 'private',
-    ownerName: 'Elena M.', 
+    ownerName: 'Maria Enache', 
+    coords: [45.6415, 25.6010], 
     interval: 'Non-stop', 
-    price: '3 RON/h',
-    locationDetail: 'Valea Cetății, Bloc A1'
+    status: 'Ocupat', 
+    price: '3 RON/h', 
+    zone: 'Centru Civic',
+    locationDetail: 'Bulevardul Victoriei, Bloc C2'
+  },
+  { 
+    id: 'privat-3', 
+    type: 'private',
+    ownerName: 'Andrei Popa', 
+    coords: [45.6680, 25.6190], 
+    interval: '19:00 - 07:00', 
+    status: 'Disponibil', 
+    price: '2 RON/h', 
+    zone: 'Coresi / Tractorul',
+    locationDetail: 'Strada Zaharia Stancu'
   }
 ];
 
