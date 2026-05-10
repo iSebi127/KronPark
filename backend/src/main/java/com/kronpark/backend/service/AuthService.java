@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.kronpark.backend.dto.ChangePasswordRequest;
 
 @Service
 public class AuthService {
@@ -33,7 +34,23 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
     }
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        // 1. Găsim userul
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        // 2. Verificăm dacă parola veche este corectă
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Parola veche este incorectă!");
+        }
+
+        // 3. Criptăm și setăm noua parolă
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+
+        // 4. Salvăm modificarea
+        userRepository.save(user);
+    }
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email().trim().toLowerCase())) {
