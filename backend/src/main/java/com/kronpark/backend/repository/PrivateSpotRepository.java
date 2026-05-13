@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PrivateSpotRepository extends JpaRepository<PrivateSpot, Long> {
     List<PrivateSpot> findAllByStatus(com.kronpark.backend.entity.SpotStatus status);
+    List<PrivateSpot> findAllByZoneIgnoreCase(String zone);
 }
+

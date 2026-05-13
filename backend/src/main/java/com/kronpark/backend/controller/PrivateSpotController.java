@@ -25,7 +25,7 @@ public class PrivateSpotController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PrivateSpotResponse>> getAvailableSpots() {
-        return ResponseEntity.ok(privateSpotService.getAllAvailableSpots());
+    public ResponseEntity<List<PrivateSpotResponse>> getAvailableSpots(@RequestParam(required = false) String zone) {
+        return ResponseEntity.ok(privateSpotService.getFilteredSpots(zone));
     }
 }
