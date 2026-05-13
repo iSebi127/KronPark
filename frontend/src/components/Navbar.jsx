@@ -30,6 +30,7 @@ function Navbar({ isLoggedIn, onLogout, userName }) {
 
   return (
     <>
+      {/* Modal pentru Autentificare Necesară */}
       {showLoginModal && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -74,10 +75,14 @@ function Navbar({ isLoggedIn, onLogout, userName }) {
         </div>
       )}
 
-      <div className="relative z-50 px-6 py-6 bg-slate-950 border-b border-white/10">
-        <nav className="max-w-7xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 text-white shadow-2xl rounded-3xl">
+      {/* AICI ESTE SECRETUL: fixed, top-0, w-full și bg-transparent */}
+      <div className="fixed top-0 left-0 w-full z-50 px-6 py-6 bg-transparent pointer-events-none">
+        
+        {/* Adăugăm pointer-events-auto doar pe pastilă, ca restul invizibil să lase clickurile să treacă spre video dacă e cazul */}
+        <nav className="max-w-7xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 text-white shadow-2xl rounded-3xl pointer-events-auto">
           <div className="px-8 py-3 grid grid-cols-3 items-center">
 
+            {/* Logo */}
             <div
               className="flex items-center gap-2 cursor-pointer group w-fit"
               onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')}
@@ -88,6 +93,7 @@ function Navbar({ isLoggedIn, onLogout, userName }) {
               <span className="text-xl font-black tracking-tighter hidden sm:block">KronPark</span>
             </div>
 
+            {/* Linkuri Centrale */}
             <div className="flex justify-center gap-1">
               <Link
                 to={isLoggedIn ? '/dashboard' : '/'}
@@ -111,6 +117,7 @@ function Navbar({ isLoggedIn, onLogout, userName }) {
               )}
             </div>
 
+            {/* Meniul Utilizatorului / Butoane Login */}
             <div className="flex justify-end gap-2 sm:gap-3 items-center">
               {isLoggedIn ? (
                 <div className="relative" ref={dropdownRef}>
