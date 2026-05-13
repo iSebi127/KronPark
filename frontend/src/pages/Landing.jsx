@@ -19,6 +19,7 @@ function Landing({ isLoggedIn }) {
           <source src="/parking.mp4" type="video/mp4" />
         </video>
 
+        {/* Gradient Overlay mai fin */}
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/90 via-slate-900/60 to-slate-950"></div>
 
         <div className="relative z-10 mt-16">
@@ -33,6 +34,7 @@ function Landing({ isLoggedIn }) {
           <div className="flex gap-4 justify-center flex-wrap">
             {isLoggedIn ? (
               <button
+                data-cy="landing-dashboard"
                 onClick={() => navigate('/dashboard')}
                 className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(37,99,235,0.4)] active:scale-95"
               >
@@ -41,12 +43,14 @@ function Landing({ isLoggedIn }) {
             ) : (
               <>
                 <button
+                  data-cy="landing-signup"
                   onClick={() => navigate('/signup')}
                   className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(37,99,235,0.4)] active:scale-95"
                 >
-                  Creează Cont 
+                  Creează Cont
                 </button>
                 <button
+                  data-cy="landing-login"
                   onClick={() => navigate('/login')}
                   className="bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                 >
@@ -145,7 +149,7 @@ function Landing({ isLoggedIn }) {
 
       <footer className="bg-slate-950 border-t border-slate-800 pt-16 pb-8 px-4 relative z-20 text-slate-400 text-sm">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          
+    
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-lg font-black">P</div>
@@ -159,7 +163,6 @@ function Landing({ isLoggedIn }) {
             </div>
           </div>
 
-          {/* Linkuri 1 */}
           <div>
             <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-xs">Platformă</h4>
             <ul className="space-y-2">
@@ -169,7 +172,6 @@ function Landing({ isLoggedIn }) {
             </ul>
           </div>
 
-          {/* Linkuri 2 */}
           <div>
             <h4 className="text-white font-bold mb-4 uppercase tracking-wider text-xs">Companie</h4>
             <ul className="space-y-2">
