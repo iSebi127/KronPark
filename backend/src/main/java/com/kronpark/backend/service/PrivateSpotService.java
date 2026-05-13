@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -47,4 +48,47 @@ public class PrivateSpotService {
                 .map(PrivateSpotResponse::from)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<PrivateSpotResponse> getFilteredSpots(String zone) {
+        LocalTime now = LocalTime.now();
+
+        List<PrivateSpot> spots;
+        if (zone != null && !zone.trim().isEmpty()) {
+            spots = privateSpotRepository.findAllByZoneIgnoreCase(zone.trim());
+        } else {
+            spots = privateSpotRepository.findAll();
+        }
+
+        return spots.stream()
+                .map(spot -> {
+
+                    String calculatedStatus = isCurrentlyAvailable(spot, now) ? "AVAILABLE" : "OCCUPIED";
+
+
+                    return new PrivateSpotResponse(
+                            spot.getId(),
+                            spot.getOwnerName(),
+                            spot.getLatitude(),
+                            spot.getLongitude(),
+                            spot.getAvailableFrom(),
+                            spot.getAvailableTo(),
+                            spot.getPrice(),
+                            spot.getZone(),
+                            calculatedStatus
+                    );
+                })
+                .toList();
+    }
+
+    private boolean isCurrentlyAvailable(PrivateSpot spot, LocalTime now) {
+        if (spot.getAvailableTo().isAfter(spot.getAvailableFrom())) {
+            return !now.isBefore(spot.getAvailableFrom()) && !now.isAfter(spot.getAvailableTo());
+        } else {
+
+            return !now.isBefore(spot.getAvailableFrom()) || !now.isAfter(spot.getAvailableTo());
+        }
+    }
+
+
 }
