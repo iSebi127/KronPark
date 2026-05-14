@@ -21,10 +21,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for ReservationService.
- * Tests the business logic with mocked dependencies.
- */
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
 
@@ -55,15 +51,11 @@ class ReservationServiceTest {
 
     @Test
     void testCreateReservation_Success() {
-        // ARRANGE
-        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
+        ReservationRequest request = new ReservationRequest("A1", "lot-centrala", startTime, endTime);
 
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(testUser));
-
         when(parkingSpotRepository.findByLotIdAndSpotNumber("lot-centrala", "A1")).thenReturn(Optional.of(testSpot));
-
-        when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime))
-                .thenReturn(false);
+        when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime)).thenReturn(false);
 
         Reservation savedReservation = Reservation.builder()
                 .id(1L)
@@ -76,10 +68,8 @@ class ReservationServiceTest {
 
         when(reservationRepository.save(any(Reservation.class))).thenReturn(savedReservation);
 
-        // ACT
         ReservationResponse response = reservationService.createReservation(request, "user@test.com");
 
-        // ASSERT
         assertThat(response).isNotNull();
         assertThat(response.status()).isEqualTo(ReservationStatus.ACTIVE);
         verify(reservationRepository).save(any(Reservation.class));
@@ -87,12 +77,10 @@ class ReservationServiceTest {
 
     @Test
     void testCreateReservation_FailsWhenStartTimeAfterEndTime() {
-        // ARRANGE
         LocalDateTime invalidStart = LocalDateTime.now().plusHours(3);
         LocalDateTime invalidEnd = LocalDateTime.now().plusHours(1);
-        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", invalidStart, invalidEnd);
+        ReservationRequest request = new ReservationRequest("A1", "lot-centrala", invalidStart, invalidEnd);
 
-        // ACT & ASSERT
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "user@test.com")
         ).isInstanceOf(IllegalArgumentException.class)
@@ -103,11 +91,10 @@ class ReservationServiceTest {
 
     @Test
     void testCreateReservation_FailsWhenUserNotFound() {
-        // ARRANGE
-        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
+        ReservationRequest request = new ReservationRequest("A1", "lot-centrala", startTime, endTime);
+
         when(userRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
-        // ACT & ASSERT
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "unknown@test.com")
         ).isInstanceOf(ResourceNotFoundException.class)
@@ -118,16 +105,12 @@ class ReservationServiceTest {
 
     @Test
     void testCreateReservation_FailsWhenSpotAlreadyReserved() {
-        // ARRANGE
-        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
+        ReservationRequest request = new ReservationRequest("A1", "lot-centrala", startTime, endTime);
+
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(testUser));
-
         when(parkingSpotRepository.findByLotIdAndSpotNumber("lot-centrala", "A1")).thenReturn(Optional.of(testSpot));
+        when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime)).thenReturn(true);
 
-        when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime))
-                .thenReturn(true); // Already reserved!
-
-        // ACT & ASSERT
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "user@test.com")
         ).isInstanceOf(IllegalStateException.class)
