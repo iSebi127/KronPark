@@ -35,10 +35,10 @@ class ReservationControllerTest {
         startTime = LocalDateTime.now().plusHours(1);
         endTime = LocalDateTime.now().plusHours(2);
 
-        testRequest = new ReservationRequest(1L, startTime, endTime);
+        testRequest = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
 
         testResponse = new ReservationResponse(
-                1L, 1L, "A1", "user@test.com", startTime, endTime, ReservationStatus.ACTIVE
+                1L, 1L, "lot-centrala", "A1", "user@test.com", startTime, endTime, ReservationStatus.ACTIVE
         );
     }
 
@@ -62,7 +62,8 @@ class ReservationControllerTest {
     void testCreateReservation_ValidatesInput() {
         // ARRANGE - Request with invalid time range
         ReservationRequest invalidRequest = new ReservationRequest(
-                1L,
+                "lot-centrala",
+                "A1",
                 LocalDateTime.now().plusHours(2),
                 LocalDateTime.now().plusHours(1) // End before start
         );

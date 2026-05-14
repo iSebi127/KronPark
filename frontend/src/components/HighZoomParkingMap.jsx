@@ -39,6 +39,8 @@ const statusToOptions = (status, isSelected) => {
   if (status === 'free') return { color: '#047857', weight: 2, fillColor: '#10b981', fillOpacity: 0.6, opacity: 1 };
   if (status === 'occupied') return { color: '#991b1b', weight: 2, fillColor: '#ef4444', fillOpacity: 0.65, opacity: 1 };
   if (status === 'reserved') return { color: '#b45309', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.65, opacity: 1 };
+
+  if (status === 'road') return { color: '#1e293b', weight: 1, fillColor: '#334155', fillOpacity: 0.8, opacity: 1 };
   return { color: '#334155', weight: 1, fillColor: '#94a3b8', fillOpacity: 0.2, opacity: 0.8 };
 };
 
@@ -74,7 +76,7 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
 
   const spots = lotLayout.spots || [];
   const spotsValid = spots.filter(s => isValidBounds(s.bounds));
-
+  
   const center = spotsValid.length
     ? [(Number(spotsValid[0].bounds[0][0]) + Number(spotsValid[0].bounds[1][0])) / 2,
        (Number(spotsValid[0].bounds[0][1]) + Number(spotsValid[0].bounds[1][1])) / 2]
@@ -82,6 +84,7 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
 
   const allCoords = spotsValid.flatMap(s => s.bounds);
   let boundary = null;
+
   if (allCoords.length) {
     const ys = allCoords.map(c => Number(c[0]));
     const xs = allCoords.map(c => Number(c[1]));
@@ -92,14 +95,12 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
     }
   }
 
-  const spotsToRender = spotsValid.filter(s => filter === 'all' || s.status === filter);
-
+  const spotsToRender = spotsValid.filter(s => filter === 'all' || s.status === filter || s.status === 'road');
   const freeCount = spotsValid.filter(s => s.status === 'free').length;
-  const occupiedCount = spotsValid.filter(s => s.status !== 'free').length;
+  const occupiedCount = spotsValid.filter(s => s.status !== 'free' && s.status !== 'road').length;
 
   return (
     <div className="w-full" data-cy="lot-layout">
-      {/* Stats bar */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-1.5">
           <div className="w-3 h-3 rounded-sm bg-emerald-500"></div>
@@ -114,56 +115,22 @@ const HighZoomParkingMap = ({ layout, onReserve }) => {
           <span className="text-sm text-slate-300">Rezervate</span>
         </div>
         <div className="ml-auto flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            data-cy="lot-filter-all"
-            className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
-          >
-            Toate
-          </button>
-          <button
-            onClick={() => setFilter('free')}
-            data-cy="lot-filter-free"
-            className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === 'free' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
-          >
-            Libere
-          </button>
+          <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Toate</button>
+          <button onClick={() => setFilter('free')} className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === 'free' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Libere</button>
         </div>
       </div>
 
       <div className="h-[65vh] rounded-xl overflow-hidden border border-slate-700 relative bg-slate-900">
-        <MapContainer
-          crs={L.CRS.Simple}
-          center={center}
-          zoom={-1}
-          minZoom={-5}
-          maxZoom={4}
-          style={{ height: '100%', width: '100%', background: '#0f172a' }}
-        >
-          {boundary && (
-            <SafeRectangle
-              bounds={boundary}
-              pathOptions={{ color: '#475569', weight: 2, dashArray: '8 4', fill: true, fillColor: '#1e293b', fillOpacity: 0.5 }}
-            />
-          )}
-
+        <MapContainer crs={L.CRS.Simple} center={center} zoom={-1} minZoom={-5} maxZoom={4} style={{ height: '100%', width: '100%', background: '#0f172a' }}>
+          {boundary && <SafeRectangle bounds={boundary} pathOptions={{ color: '#475569', weight: 2, dashArray: '8 4', fill: true, fillColor: '#1e293b', fillOpacity: 0.5 }} />}
           {spotsToRender.map(spot => (
-            <SafeRectangle
-              key={spot.id}
-              bounds={spot.bounds}
-              pathOptions={statusToOptions(spot.status, selectedId === spot.id)}
-              eventHandlers={{ click: (e) => handleRectClick(e, spot) }}
-            >
-            </SafeRectangle>
+            <SafeRectangle key={spot.id} bounds={spot.bounds} pathOptions={statusToOptions(spot.status, selectedId === spot.id)} eventHandlers={{ click: (e) => handleRectClick(e, spot) }} />
           ))}
-
           <MapEvents onClick={() => {}} />
         </MapContainer>
       </div>
 
-      <p className="text-xs text-slate-500 mt-2 text-center">
-        Click pe un loc <span className="text-emerald-400">verde</span> pentru a-l rezerva
-      </p>
+      <p className="text-xs text-slate-500 mt-2 text-center">Click pe un loc <span className="text-emerald-400">verde</span> pentru a-l rezerva</p>
     </div>
   );
 };

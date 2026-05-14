@@ -48,7 +48,7 @@ class ReservationServiceTest {
     @BeforeEach
     void setUp() {
         testUser = createTestUser(1L, "user@test.com");
-        testSpot = createTestSpot(1L, "A1");
+        testSpot = createTestSpot(1L, "lot-centrala", "A1");
         startTime = LocalDateTime.now().plusHours(1);
         endTime = LocalDateTime.now().plusHours(2);
     }
@@ -56,10 +56,12 @@ class ReservationServiceTest {
     @Test
     void testCreateReservation_Success() {
         // ARRANGE
-        ReservationRequest request = new ReservationRequest(1L, startTime, endTime);
+        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
 
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(testUser));
-        when(parkingSpotRepository.findById(1L)).thenReturn(Optional.of(testSpot));
+
+        when(parkingSpotRepository.findByLotIdAndSpotNumber("lot-centrala", "A1")).thenReturn(Optional.of(testSpot));
+
         when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime))
                 .thenReturn(false);
 
@@ -88,13 +90,13 @@ class ReservationServiceTest {
         // ARRANGE
         LocalDateTime invalidStart = LocalDateTime.now().plusHours(3);
         LocalDateTime invalidEnd = LocalDateTime.now().plusHours(1);
-        ReservationRequest request = new ReservationRequest(1L, invalidStart, invalidEnd);
+        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", invalidStart, invalidEnd);
 
         // ACT & ASSERT
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "user@test.com")
         ).isInstanceOf(IllegalArgumentException.class)
-         .hasMessage("Start time must be before end time");
+                .hasMessage("Start time must be before end time");
 
         verify(reservationRepository, never()).save(any());
     }
@@ -102,14 +104,14 @@ class ReservationServiceTest {
     @Test
     void testCreateReservation_FailsWhenUserNotFound() {
         // ARRANGE
-        ReservationRequest request = new ReservationRequest(1L, startTime, endTime);
+        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
         when(userRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
         // ACT & ASSERT
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "unknown@test.com")
         ).isInstanceOf(ResourceNotFoundException.class)
-         .hasMessage("User not found");
+                .hasMessage("User not found");
 
         verify(reservationRepository, never()).save(any());
     }
@@ -117,9 +119,11 @@ class ReservationServiceTest {
     @Test
     void testCreateReservation_FailsWhenSpotAlreadyReserved() {
         // ARRANGE
-        ReservationRequest request = new ReservationRequest(1L, startTime, endTime);
+        ReservationRequest request = new ReservationRequest("lot-centrala", "A1", startTime, endTime);
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(testUser));
-        when(parkingSpotRepository.findById(1L)).thenReturn(Optional.of(testSpot));
+
+        when(parkingSpotRepository.findByLotIdAndSpotNumber("lot-centrala", "A1")).thenReturn(Optional.of(testSpot));
+
         when(reservationRepository.existsOverlappingReservation(1L, startTime, endTime))
                 .thenReturn(true); // Already reserved!
 
@@ -127,7 +131,7 @@ class ReservationServiceTest {
         assertThatThrownBy(() ->
                 reservationService.createReservation(request, "user@test.com")
         ).isInstanceOf(IllegalStateException.class)
-         .hasMessage("The parking spot is already reserved for this interval");
+                .hasMessage("The parking spot is already reserved for this interval");
 
         verify(reservationRepository, never()).save(any());
     }
@@ -142,9 +146,10 @@ class ReservationServiceTest {
         return user;
     }
 
-    private ParkingSpot createTestSpot(Long id, String spotNumber) {
+    private ParkingSpot createTestSpot(Long id, String lotId, String spotNumber) {
         ParkingSpot spot = new ParkingSpot();
         spot.setId(id);
+        spot.setLotId(lotId);
         spot.setSpotNumber(spotNumber);
         spot.setStatus(SpotStatus.AVAILABLE);
         return spot;

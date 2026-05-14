@@ -2,36 +2,34 @@ import React, { useMemo, useState } from 'react';
 import ParkingSpot from './ParkingSpot';
 import ParkingLegend from './ParkingLegend';
 
-// ParkingGrid
-// Props:
-// - rows: number (total rows, including road row)
-// - cols: number
-// - lane: { type: 'row'|'col', index: number, direction: 'left'|'right'|'up'|'down' }
-// - map: optional object { '<label>': 'free'|'occupied'|'reserved' }
-// - onSelect: function(id) called when a free spot is selected
-// Visual theme: deep navy, cyan accents, HUD look
-
-export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', index: Math.floor(3/2), direction: 'right' }, map = {}, labelToId = {}, onSelect }) {
+export default function ParkingGrid({ rows = 5, cols = 12, lane, map = {}, labelToId = {}, onSelect }) {
   const [selected, setSelected] = useState(null);
 
-  // generate labels A1.. etc by row-major
+
   const grid = useMemo(() => {
     const g = [];
+    let logicalR = 0;
+
     for (let r = 0; r < rows; r++) {
+      const isRoadRow = lane && lane.type === 'row' && lane.index === r;
+      let logicalC = 0;
+
       for (let c = 0; c < cols; c++) {
-        const rowLetter = String.fromCharCode(65 + r); // A, B, C
-        const label = `${rowLetter}${c + 1}`;
-        g.push({ r, c, label });
+        const isRoadCol = lane && lane.type === 'col' && lane.index === c;
+
+        if (isRoadRow || isRoadCol) {
+          g.push({ r, c, label: `road-${r}-${c}`, isRoad: true });
+        } else {
+          const rowLetter = String.fromCharCode(65 + logicalR);
+          const label = `${rowLetter}${logicalC + 1}`;
+          g.push({ r, c, label, isRoad: false });
+          logicalC++;
+        }
       }
+      if (!isRoadRow) logicalR++;
     }
     return g;
-  }, [rows, cols]);
-
-  function cellIsRoad(r, c) {
-    if (!lane) return false;
-    if (lane.type === 'row') return r === lane.index;
-    return c === lane.index;
-  }
+  }, [rows, cols, lane]);
 
   function getStatus(label) {
     return map && map[label] ? map[label] : 'free';
@@ -53,11 +51,9 @@ export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', 
     );
   };
 
-  // Tailwind-based styles: deep navy, cyan accents, HUD look
   return (
     <div className="w-full p-4">
       <div className="mx-auto max-w-[1100px]">
-        {/* Outer border only (no filled wall cells) */}
         <div className="bg-slate-950 rounded-xl p-4 shadow-xl border-2 border-cyan-900">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-cyan-200">Parking Layout</h3>
@@ -67,19 +63,13 @@ export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', 
           <div className="rounded-md border border-cyan-800 overflow-hidden" style={{ padding: 4 }}>
             <div
               className="grid bg-transparent"
-              // make cells more compact: allow smaller min size so more cols fit without overlap
               style={{ gridTemplateColumns: `repeat(${cols}, minmax(32px, 1fr))`, gridAutoRows: '32px', gap: '6px' }}
               role="grid"
-              aria-label="parking-grid"
             >
               {grid.map((cell) => {
-                const { r, c, label } = cell;
-                const status = getStatus(label);
-                const isRoad = status === 'road' || cellIsRoad(r, c);
-                const isSelected = selected === label;
+                const { label, isRoad } = cell;
 
                 if (isRoad) {
-                  // road styling (asphalt-like)
                   return (
                     <div key={label} className="flex items-center justify-center" role="presentation">
                       <div className="w-full h-full bg-slate-900/60 rounded-sm flex items-center justify-center relative overflow-hidden">
@@ -92,25 +82,18 @@ export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', 
                   );
                 }
 
-                // If this cell is a placeholder (no real spot mapped), render it as empty/transparent
-                // This avoids showing a red 'occupied' block for non-existent slots.
+                const status = getStatus(label);
                 const hasRealSpot = Boolean(labelToId && labelToId[label]);
+                
                 if (status === 'occupied' && !hasRealSpot) {
-                  return (
-                    <div key={label} role="presentation" aria-hidden className="flex items-center justify-center">
-                      <div className="w-full h-full" />
-                    </div>
-                  );
+                  return <div key={label} className="w-full h-full" />;
                 }
-
-                // parking spot: use reusable ParkingSpot component for real spots (free/occupied/reserved)
-                const spotObj = { id: label, status: status, type: 'standard' };
 
                 return (
                   <div key={label} role="gridcell" className="flex items-center justify-center">
                     <ParkingSpot
-                      spot={spotObj}
-                      isSelected={isSelected}
+                      spot={{ id: label, status: status, type: 'standard' }}
+                      isSelected={selected === label}
                       onClick={() => handleClick(cell)}
                     />
                   </div>
@@ -118,7 +101,6 @@ export default function ParkingGrid({ rows = 3, cols = 8, lane = { type: 'row', 
               })}
             </div>
           </div>
-
           <div className="mt-3 text-xs text-slate-400 flex gap-4">
             <ParkingLegend />
           </div>
