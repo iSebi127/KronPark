@@ -5,6 +5,7 @@ import com.kronpark.backend.dto.ParkingSpotResponse;
 import com.kronpark.backend.service.ParkingSpotService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class ParkingSpotController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ParkingSpotResponse createSpot(@RequestBody @Valid CreateParkingSpotRequest request) {
         return parkingSpotService.createSpot(request);
