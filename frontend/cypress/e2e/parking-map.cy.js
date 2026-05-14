@@ -1,11 +1,12 @@
 describe("Parking map flows", () => {
   beforeEach(() => {
-    cy.intercept("GET", "**/api/parking-spots", {
+    
+    cy.intercept("GET", "**/api/parking-spots*", {
       statusCode: 200,
       body: [
-        { id: 1, spotNumber: "A1", status: "AVAILABLE" },
-        { id: 2, spotNumber: "A2", status: "AVAILABLE" },
-        { id: 3, spotNumber: "A3", status: "RESERVED" },
+        { id: "A1", spotNumber: "A1", status: "AVAILABLE" },
+        { id: "A2", spotNumber: "A2", status: "AVAILABLE" },
+        { id: "A3", spotNumber: "A3", status: "RESERVED" },
       ],
     }).as("getSpots");
 
@@ -43,19 +44,24 @@ describe("Parking map flows", () => {
   });
 
   it("opens a lot layout and reserves a spot", () => {
+   
+    cy.wait("@getSpots");
+
     cy.get('[data-cy="lot-layout-page"]').should("be.visible");
     cy.get('[data-cy="lot-title"]').should("contain", "Parcare");
 
     cy.get('[data-cy="lot-filter-free"]').click();
 
+    
     cy.get('path.leaflet-interactive', { timeout: 10000 })
         .not('[stroke-dasharray]')
         .first()
         .click({ force: true });
 
-    cy.contains('button', 'Confirma rezervarea').click();
+   
+    cy.get('[data-cy="lot-reserve-confirm"]').click();
 
-    cy.wait("@getSpots");
+
     cy.wait("@postReservation");
     cy.wait("@getDashboardData");
 
@@ -64,6 +70,9 @@ describe("Parking map flows", () => {
   });
 
   it("returns to the map after closing the lot page", () => {
+  
+    cy.wait("@getSpots");
+
     cy.get('[data-cy="lot-back-to-map"]').click();
     cy.url().should("include", "/map");
     cy.get('[data-cy="parking-lots-map"]').should("be.visible");
