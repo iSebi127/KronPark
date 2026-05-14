@@ -16,9 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for ReservationController service logic.
- */
 @ExtendWith(MockitoExtension.class)
 class ReservationControllerTest {
 
@@ -34,24 +31,20 @@ class ReservationControllerTest {
     void setUp() {
         startTime = LocalDateTime.now().plusHours(1);
         endTime = LocalDateTime.now().plusHours(2);
-
-        testRequest = new ReservationRequest(1L, startTime, endTime);
+        testRequest = new ReservationRequest("A1", "lot-centrala", startTime, endTime);
 
         testResponse = new ReservationResponse(
-                1L, 1L, "A1", "user@test.com", startTime, endTime, ReservationStatus.ACTIVE
+                1L, 1L, "lot-centrala", "A1", "user@test.com", startTime, endTime, ReservationStatus.ACTIVE
         );
     }
 
     @Test
     void testCreateReservation_Success() {
-        // ARRANGE
         when(reservationService.createReservation(any(ReservationRequest.class), any()))
                 .thenReturn(testResponse);
 
-        // ACT
         ReservationResponse result = reservationService.createReservation(testRequest, null);
 
-        // ASSERT
         assertNotNull(result);
         assertEquals(1L, result.id());
         assertEquals(ReservationStatus.ACTIVE, result.status());
@@ -60,14 +53,14 @@ class ReservationControllerTest {
 
     @Test
     void testCreateReservation_ValidatesInput() {
-        // ARRANGE - Request with invalid time range
+        // REPARAT: Ordinea corectă a parametrilor
         ReservationRequest invalidRequest = new ReservationRequest(
-                1L,
+                "A1",
+                "lot-centrala",
                 LocalDateTime.now().plusHours(2),
-                LocalDateTime.now().plusHours(1) // End before start
+                LocalDateTime.now().plusHours(1)
         );
 
-        // ACT & ASSERT - Should handle invalid input
         assertNotNull(invalidRequest);
         assertTrue(invalidRequest.endTime().isBefore(invalidRequest.startTime()));
     }

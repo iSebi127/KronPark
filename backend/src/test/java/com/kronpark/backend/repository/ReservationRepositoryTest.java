@@ -12,10 +12,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * Integration tests for ReservationRepository.
- * Tests database queries using Spring Boot test context.
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -32,11 +28,9 @@ class ReservationRepositoryTest {
 
     @Test
     void testExistsOverlappingReservation_NoReservations() {
-        // Create test data with unique spot number
         User user = createTestUser("user1@test.com");
         ParkingSpot spot = createTestSpot("TEST-A1");
 
-        // Test with no reservations
         boolean hasOverlap = reservationRepository.existsOverlappingReservation(
                 spot.getId(),
                 LocalDateTime.now().plusHours(1),
@@ -48,13 +42,11 @@ class ReservationRepositoryTest {
 
     @Test
     void testExistsOverlappingReservation_WithOverlap() {
-        // Create test data with unique spot number
         User user = createTestUser("user2@test.com");
         ParkingSpot spot = createTestSpot("TEST-A2");
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Create overlapping reservation
         Reservation existing = Reservation.builder()
                 .user(user)
                 .parkingSpot(spot)
@@ -64,7 +56,6 @@ class ReservationRepositoryTest {
                 .build();
         reservationRepository.save(existing);
 
-        // Test overlapping time
         boolean hasOverlap = reservationRepository.existsOverlappingReservation(
                 spot.getId(),
                 now.plusHours(1).plusMinutes(30),
@@ -76,13 +67,11 @@ class ReservationRepositoryTest {
 
     @Test
     void testFindByUserId_Success() {
-        // Create test data with unique spot number
         User user = createTestUser("user3@test.com");
         ParkingSpot spot = createTestSpot("TEST-A3");
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Create reservations
         Reservation res1 = Reservation.builder()
                 .user(user)
                 .parkingSpot(spot)
@@ -101,7 +90,6 @@ class ReservationRepositoryTest {
 
         reservationRepository.saveAll(List.of(res1, res2));
 
-        // Test
         List<Reservation> found = reservationRepository.findByUserId(user.getId());
 
         assertThat(found).hasSize(2);
@@ -118,6 +106,7 @@ class ReservationRepositoryTest {
 
     private ParkingSpot createTestSpot(String spotNumber) {
         ParkingSpot spot = new ParkingSpot();
+        spot.setLotId("lot-test");
         spot.setSpotNumber(spotNumber);
         spot.setStatus(SpotStatus.AVAILABLE);
         return parkingSpotRepository.save(spot);

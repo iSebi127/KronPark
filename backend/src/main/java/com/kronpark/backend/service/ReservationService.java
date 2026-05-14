@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,8 +42,8 @@ public class ReservationService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        ParkingSpot spot = parkingSpotRepository.findById(request.parkingSpotId())
-                .orElseThrow(() -> new ResourceNotFoundException("Parking spot not found"));
+        ParkingSpot spot = parkingSpotRepository.findByLotIdAndSpotNumber(request.lotId(), request.spotNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Parking spot " + request.spotNumber() + " not found in lot " + request.lotId()));
 
         boolean isOverlapping = reservationRepository.existsOverlappingReservation(
                 spot.getId(), request.startTime(), request.endTime());

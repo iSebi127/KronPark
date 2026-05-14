@@ -19,11 +19,12 @@ public class ParkingSpotService {
         this.parkingSpotRepository = parkingSpotRepository;
     }
 
-    public List<ParkingSpotResponse> getAllSpots() {
-        // Citim statusul direct din baza de date.
-        // createReservation() si cancelReservation() mentin campul spot.status corect.
-        return parkingSpotRepository.findAll()
-                .stream()
+    public List<ParkingSpotResponse> getAllSpots(String lotId) {
+        List<ParkingSpot> spots = (lotId != null && !lotId.isEmpty())
+                ? parkingSpotRepository.findByLotId(lotId)
+                : parkingSpotRepository.findAll();
+
+        return spots.stream()
                 .map(spot -> new ParkingSpotResponse(
                         spot.getId(),
                         spot.getSpotNumber(),
@@ -32,18 +33,19 @@ public class ParkingSpotService {
                 .collect(Collectors.toList());
     }
 
-    public ParkingSpotResponse getSpotByNumber(String spotNumber) {
-        ParkingSpot spot = parkingSpotRepository.findBySpotNumber(spotNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Parking spot not found: " + spotNumber));
+    public ParkingSpotResponse getSpotByLotAndNumber(String lotId, String spotNumber) {
+        ParkingSpot spot = parkingSpotRepository.findByLotIdAndSpotNumber(lotId, spotNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Parking spot not found: " + spotNumber + " in lot: " + lotId));
         return ParkingSpotResponse.from(spot);
     }
 
     public ParkingSpotResponse createSpot(com.kronpark.backend.dto.CreateParkingSpotRequest request) {
-        if (parkingSpotRepository.existsBySpotNumber(request.spotNumber())) {
-            throw new com.kronpark.backend.exception.DuplicateResourceException("Parking spot already exists");
+        if (parkingSpotRepository.existsByLotIdAndSpotNumber(request.lotId(), request.spotNumber())) {
+            throw new com.kronpark.backend.exception.DuplicateResourceException("Parking spot already exists in this lot");
         }
 
         ParkingSpot spot = new ParkingSpot();
+        spot.setLotId(request.lotId());
         spot.setSpotNumber(request.spotNumber());
         spot.setStatus(SpotStatus.AVAILABLE);
 

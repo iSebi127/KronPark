@@ -6,8 +6,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public record ReservationRequest(
-        @NotNull(message = "Parking spot ID is required")
-        Long parkingSpotId,
+        @NotNull(message = "Spot number is required")
+        String spotNumber,
+
+        @NotNull(message = "Lot id is required")
+        String lotId,
 
         @NotNull(message = "Start time is required")
         @Future(message = "Start time must be in the future")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../apiClient';
+import PARKING_LOTS from '../data/parkingLots'; 
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -181,43 +182,49 @@ function Dashboard({ onLogout }) {
               </div>
             ) : (
               <div className="space-y-4">
-                {reservations.map((reservation) => (
-                  <div 
-                    key={reservation.id} 
-                    className="bg-slate-800/50 border border-white/5 hover:border-white/10 p-6 rounded-xl transition-all duration-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl font-black text-blue-400">
-                          {reservation.spotId}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                          reservation.status === 'ACTIVE' 
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : reservation.status === 'EXPIRED'
-                            ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
-                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                        }`}>
-                          {reservation.status === 'ACTIVE' ? '✓ Activ' : reservation.status === 'EXPIRED' ? 'Expirat' : 'Anulat'}
-                        </span>
+                {reservations.map((reservation) => {
+        
+                  const lotInfo = PARKING_LOTS.find((l) => l.id === reservation.lotId);
+                  const displayLotName = lotInfo ? lotInfo.name : (reservation.lotId || "Parcare");
+
+                  return (
+                    <div 
+                      key={reservation.id} 
+                      className="bg-slate-800/50 border border-white/5 hover:border-white/10 p-6 rounded-xl transition-all duration-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-xl font-black text-blue-400">
+                            {displayLotName}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                            reservation.status === 'ACTIVE' 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : reservation.status === 'EXPIRED'
+                              ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                              : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                          }`}>
+                            {reservation.status === 'ACTIVE' ? '✓ Activ' : reservation.status === 'EXPIRED' ? 'Expirat' : 'Anulat'}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-sm">
+                          🕐 {formatDateTime(reservation.startTime)} - {formatDateTime(reservation.endTime)}
+                        </p>
+                        <p className="text-slate-300 font-semibold text-sm mt-1">
+                          Locul #{reservation.spotNumber || reservation.spotId}
+                        </p>
                       </div>
-                      <p className="text-slate-400 text-sm">
-                        🕐 {formatDateTime(reservation.startTime)} - {formatDateTime(reservation.endTime)}
-                      </p>
-                      <p className="text-slate-500 text-xs mt-1">
-                        Locul #{reservation.spotNumber || reservation.spotId}
-                      </p>
+                      {reservation.status === 'ACTIVE' && (
+                        <button
+                          onClick={() => handleCancelReservation(reservation.id)}
+                          className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 border border-red-500/30 hover:border-red-500/50 whitespace-nowrap"
+                        >
+                          ✕ Anulează
+                        </button>
+                      )}
                     </div>
-                    {reservation.status === 'ACTIVE' && (
-                      <button
-                        onClick={() => handleCancelReservation(reservation.id)}
-                        className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 border border-red-500/30 hover:border-red-500/50 whitespace-nowrap"
-                      >
-                        ✕ Anulează
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -396,4 +403,3 @@ function PrivateSpotsInline({ navigate }) {
 }
 
 export default Dashboard;
-
