@@ -1,22 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../apiClient'; // Adăugăm clientul API
 
 export default function PrivateSpotsPanel({ isLoggedIn }) {
   const [open, setOpen] = useState(false);
   const [spots, setSpots] = useState([]);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
   const panelRef = useRef(null);
   const navigate = useNavigate();
 
-  // Incarcam locurile din localStorage de fiecare data cand se deschide panelul
+  // Acum descărcăm datele de pe backend, nu din localStorage
   useEffect(() => {
     if (open) {
-      const stored = JSON.parse(localStorage.getItem('privateSpots') || '[]');
-      setSpots(stored);
+      setLoading(true);
+      apiClient('/api/private-spots')
+        .then(res => res.json())
+        .then(data => {
+          setSpots(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Eroare la încărcarea locurilor", err);
+          setLoading(false);
+        });
     }
   }, [open]);
 
-  // Inchide la click in afara
+  // Închide la click în afară
   useEffect(() => {
     function handleClickOutside(e) {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
@@ -29,10 +40,10 @@ export default function PrivateSpotsPanel({ isLoggedIn }) {
 
   const filtered = spots.filter((s) => {
     const q = search.toLowerCase();
+    // Căutăm după zona sau numele proprietarului (câmpurile din Java)
     return (
-      s.address.toLowerCase().includes(q) ||
-      (s.neighborhood || '').toLowerCase().includes(q) ||
-      (s.description || '').toLowerCase().includes(q)
+      (s.zone || '').toLowerCase().includes(q) ||
+      (s.ownerName || '').toLowerCase().includes(q)
     );
   });
 
@@ -83,14 +94,16 @@ export default function PrivateSpotsPanel({ isLoggedIn }) {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Caută după adresă sau zonă..."
+              placeholder="Caută după zonă sau proprietar..."
               className="w-full bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
             />
           </div>
 
           {/* Lista locuri */}
           <div className="overflow-y-auto max-h-[420px]">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="px-4 py-10 text-center text-slate-400 text-sm">Se încarcă...</div>
+            ) : filtered.length === 0 ? (
               <div className="px-4 py-10 text-center">
                 <div className="text-3xl mb-2">🅿️</div>
                 <p className="text-slate-400 text-sm font-medium">
@@ -112,53 +125,34 @@ export default function PrivateSpotsPanel({ isLoggedIn }) {
                 {filtered.map((spot) => (
                   <div key={spot.id} className="px-4 py-3 hover:bg-slate-800/50 transition-colors">
 
-                    {/* Adresa + zona */}
+                    {/* Zona + Pret */}
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div>
-                        <p className="text-sm font-semibold text-white leading-tight">{spot.address}</p>
-                        {spot.neighborhood && (
-                          <span className="text-xs text-blue-400 font-medium">{spot.neighborhood}</span>
-                        )}
+                        <p className="text-sm font-semibold text-white leading-tight">📍 Zona {spot.zone}</p>
+                        <span className="text-xs text-blue-400 font-medium">Status: {spot.status}</span>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full font-medium">
-                          {spot.spots} {spot.spots === 1 ? 'loc' : 'locuri'}
+                          1 loc
                         </span>
-                        {spot.pricePerHour !== null && spot.pricePerHour !== undefined ? (
-                          <span className="text-xs text-green-400 font-bold">{spot.pricePerHour} RON/h</span>
+                        {spot.price > 0 ? (
+                          <span className="text-xs text-green-400 font-bold">{spot.price} RON/h</span>
                         ) : (
                           <span className="text-xs text-emerald-400 font-medium">Gratuit</span>
                         )}
                       </div>
                     </div>
 
-                    {/* Descriere */}
-                    {spot.description && (
-                      <p className="text-xs text-slate-400 mb-1.5 leading-relaxed">{spot.description}</p>
-                    )}
-
                     {/* Data + Program */}
-                    {(spot.availableDate || spot.availableFrom || spot.availableTo) && (
-                      <p className="text-xs text-slate-500 mb-1.5">
-                        🗓️ {spot.availableDate ? new Date(spot.availableDate).toLocaleDateString('ro-RO') : 'Oricând'}
-                        {(spot.availableFrom || spot.availableTo) && (
-                          <span> &nbsp;🕐 {spot.availableFrom || '00:00'} – {spot.availableTo || '24:00'}</span>
-                        )}
-                      </p>
-                    )}
+                    <p className="text-xs text-slate-500 mb-1.5 mt-2">
+                       🕐 {spot.availableFrom || '00:00'} – {spot.availableTo || '24:00'}
+                    </p>
 
-                    {/* Footer: owner + contact */}
+                    {/* Footer: owner */}
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/40">
-                      <span className="text-xs text-slate-500">
-                        👤 {spot.ownerName} · {spot.createdAt}
+                      <span className="text-xs text-slate-400">
+                        👤 Proprietar: <span className="font-bold text-slate-300">{spot.ownerName}</span>
                       </span>
-                      <a
-                        href={`tel:${spot.contact}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
-                      >
-                        📞 {spot.contact}
-                      </a>
                     </div>
                   </div>
                 ))}
@@ -166,7 +160,7 @@ export default function PrivateSpotsPanel({ isLoggedIn }) {
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer Panel */}
           {!isLoggedIn && (
             <div className="px-4 py-3 border-t border-slate-700/60 bg-slate-800/30 text-center">
               <p className="text-xs text-slate-400">

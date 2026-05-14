@@ -21,10 +21,17 @@ public record ReservationResponse(
         String spotNumber = null;
         String lotId = null;
 
+        // 1. Verificăm dacă este un loc PUBLIC
         if (reservation.getParkingSpot() != null) {
             spotId = reservation.getParkingSpot().getId();
             spotNumber = reservation.getParkingSpot().getSpotNumber();
             lotId = reservation.getParkingSpot().getLotId();
+        } 
+        // 2. Verificăm dacă este un loc PRIVAT (ADAUGĂ ACEST BLOC)
+        else if (reservation.getPrivateSpot() != null) {
+            spotId = reservation.getPrivateSpot().getId();
+            spotNumber = "PRIVATE"; // Sau poți pune spot.getOwnerName()
+            lotId = reservation.getPrivateSpot().getZone();
         }
 
         String userEmail = null;

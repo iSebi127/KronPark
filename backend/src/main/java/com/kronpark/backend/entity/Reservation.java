@@ -21,9 +21,15 @@ public class Reservation {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "parking_spot_id", nullable = false)
+    // Am scos optional = false pentru că acum avem două tipuri de locuri
+    @ManyToOne
+    @JoinColumn(name = "parking_spot_id", nullable = true)
     private ParkingSpot parkingSpot;
+
+    // ADAUGĂ ACEST CÂMP pentru locurile private
+    @ManyToOne
+    @JoinColumn(name = "private_spot_id", nullable = true)
+    private PrivateSpot privateSpot;
 
     @Column(nullable = false)
     private LocalDateTime startTime;

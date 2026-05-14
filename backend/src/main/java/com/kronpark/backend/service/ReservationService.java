@@ -21,50 +21,53 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final ParkingSpotRepository parkingSpotRepository;
+    private final PrivateSpotRepository privateSpotRepository;
 
     @Transactional
-    public ReservationResponse createReservation(ReservationRequest request, String userEmail) {
+public ReservationResponse createReservation(ReservationRequest request, String userEmail) {
+    System.out.println("DEBUG: Încercare rezervare de către: " + userEmail + " pentru spotId: " + request.spotId());
 
-        if (request.startTime().isAfter(request.endTime())) {
-            throw new IllegalArgumentException("Start time must be before end time");
-        }
-
-        long durationInMinutes = java.time.Duration.between(request.startTime(), request.endTime()).toMinutes();
-
-        if (durationInMinutes <= 0) {
-            throw new IllegalArgumentException("Reservation duration must be greater than 0");
-        }
-
-        if (durationInMinutes % 60 != 0) {
-            throw new IllegalArgumentException("Reservation duration must respect hourly intervals");
-        }
-
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        ParkingSpot spot = parkingSpotRepository.findByLotIdAndSpotNumber(request.lotId(), request.spotNumber())
-                .orElseThrow(() -> new ResourceNotFoundException("Parking spot " + request.spotNumber() + " not found in lot " + request.lotId()));
-
-        boolean isOverlapping = reservationRepository.existsOverlappingReservation(
-                spot.getId(), request.startTime(), request.endTime());
-
-        if (isOverlapping) {
-            throw new IllegalStateException("The parking spot is already reserved for this interval");
-        }
-
-        spot.setStatus(SpotStatus.RESERVED);
-        parkingSpotRepository.save(spot);
-
-        Reservation reservation = Reservation.builder()
-                .user(user)
-                .parkingSpot(spot)
-                .startTime(request.startTime())
-                .endTime(request.endTime())
-                .status(ReservationStatus.ACTIVE)
-                .build();
-
-        return ReservationResponse.from(reservationRepository.save(reservation));
+    // 1. Validări de timp
+    if (request.startTime().isAfter(request.endTime())) {
+        throw new IllegalArgumentException("Ora de început trebuie să fie înainte de sfârșit");
     }
+
+    User user = userRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    // 2. Identificăm locul privat
+    PrivateSpot spot = privateSpotRepository.findById(request.spotId())
+            .orElseThrow(() -> new ResourceNotFoundException("Locul privat nu a fost găsit cu ID: " + request.spotId()));
+
+    // 3. LOGICA DE BLOCARE (Verificăm email-urile)
+    String ownerEmail = spot.getUser().getEmail();
+    System.out.println("DEBUG: Proprietar loc: " + ownerEmail + " | Cine rezervă: " + userEmail);
+
+    if (ownerEmail.equalsIgnoreCase(userEmail)) {
+        System.out.println("DEBUG: Blocat! Proprietarul a încercat să rezerve propriul loc.");
+        throw new IllegalArgumentException("Eroare: Nu îți poți rezerva propriul tău loc de parcare! Îl deții deja.");
+    }
+
+    // 4. Verificăm dacă e liber
+    if (spot.getStatus() != SpotStatus.AVAILABLE) {
+        throw new IllegalStateException("Locul este deja ocupat!");
+    }
+
+    // 5. Marcăm locul ca ocupat
+    spot.setStatus(SpotStatus.OCCUPIED);
+    privateSpotRepository.save(spot);
+
+    // 6. Construim rezervarea
+    Reservation reservation = Reservation.builder()
+            .user(user)
+            .privateSpot(spot)
+            .startTime(request.startTime())
+            .endTime(request.endTime())
+            .status(ReservationStatus.ACTIVE)
+            .build();
+
+    return ReservationResponse.from(reservationRepository.save(reservation));
+}
 
     @Transactional(readOnly = true)
     public List<ReservationResponse> getMyReservations(String email) {
@@ -81,57 +84,53 @@ public class ReservationService {
     @Scheduled(cron = "0 * * * * *")
     public void autoExpireReservations() {
         LocalDateTime now = LocalDateTime.now();
-
         List<Reservation> expiredReservations = reservationRepository
                 .findByStatusAndEndTimeBefore(ReservationStatus.ACTIVE, now);
 
         for (Reservation reservation : expiredReservations) {
             reservation.setStatus(ReservationStatus.COMPLETED);
-            ParkingSpot spot = reservation.getParkingSpot();
-            spot.setStatus(SpotStatus.AVAILABLE);
-            parkingSpotRepository.save(spot);
+            
+            // ELIBERARE LOC PRIVAT
+            if (reservation.getPrivateSpot() != null) {
+                PrivateSpot spot = reservation.getPrivateSpot();
+                spot.setStatus(SpotStatus.AVAILABLE);
+                privateSpotRepository.save(spot);
+            }
+            // ELIBERARE LOC PUBLIC (dacă existau și acestea)
+            else if (reservation.getParkingSpot() != null) {
+                ParkingSpot pSpot = reservation.getParkingSpot();
+                pSpot.setStatus(SpotStatus.AVAILABLE);
+                parkingSpotRepository.save(pSpot);
+            }
         }
-
-        if (!expiredReservations.isEmpty()) {
-            reservationRepository.saveAll(expiredReservations);
-            System.out.println("There are " + expiredReservations.size() + " expired reservations");
-        }
-    }
-
-    @Transactional
-    @Scheduled(cron = "0 * * * * *")
-    public void notifyUpcomingExpirations() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime tenMinutesFromNow = now.plusMinutes(10);
-
-        List<Reservation> toNotify = reservationRepository.findReservationsToNotify(now, tenMinutesFromNow);
-
-        for (Reservation reservation : toNotify) {
-            System.out.println("Notification -> " + reservation.getUser().getEmail() +
-                    ": Parking spot " + reservation.getParkingSpot().getSpotNumber() +
-                    " expires in less than 10 minutes!");
-            reservation.setNotified(true);
-        }
+        reservationRepository.saveAll(expiredReservations);
     }
 
     @Transactional
     public ReservationResponse cancelReservation(Long reservationId, String userEmail) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rezervarea nu a fost găsită"));
 
         if (!reservation.getUser().getEmail().equals(userEmail)) {
-            throw new IllegalArgumentException("You can only cancel your own reservations");
+            throw new IllegalArgumentException("Poți anula doar propriile rezervări");
         }
 
         if (reservation.getStatus() != ReservationStatus.ACTIVE) {
-            throw new IllegalStateException("Only active reservations can be cancelled");
+            throw new IllegalStateException("Doar rezervările active pot fi anulate");
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);
 
-        ParkingSpot spot = reservation.getParkingSpot();
-        spot.setStatus(SpotStatus.AVAILABLE);
-        parkingSpotRepository.save(spot);
+        // Resetăm statusul locului în funcție de tipul lui
+        if (reservation.getPrivateSpot() != null) {
+            PrivateSpot spot = reservation.getPrivateSpot();
+            spot.setStatus(SpotStatus.AVAILABLE);
+            privateSpotRepository.save(spot);
+        } else if (reservation.getParkingSpot() != null) {
+            ParkingSpot pSpot = reservation.getParkingSpot();
+            pSpot.setStatus(SpotStatus.AVAILABLE);
+            parkingSpotRepository.save(pSpot);
+        }
 
         return ReservationResponse.from(reservationRepository.save(reservation));
     }

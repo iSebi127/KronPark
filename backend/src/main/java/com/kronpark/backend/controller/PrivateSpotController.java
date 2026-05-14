@@ -28,4 +28,12 @@ public class PrivateSpotController {
     public ResponseEntity<List<PrivateSpotResponse>> getAvailableSpots(@RequestParam(required = false) String zone) {
         return ResponseEntity.ok(privateSpotService.getFilteredSpots(zone));
     }
+
+    // ADAUGĂ ACEASTĂ METODĂ EXACT AȘA
+    @GetMapping("/my")
+    public ResponseEntity<List<PrivateSpotResponse>> getMySpots(Authentication authentication) {
+        System.out.println("DEBUG: S-a apelat ruta /api/private-spots/my pentru userul: " + authentication.getName());
+        List<PrivateSpotResponse> mySpots = privateSpotService.getMySpots(authentication.getName());
+        return ResponseEntity.ok(mySpots);
+    }
 }

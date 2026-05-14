@@ -31,7 +31,8 @@ class ReservationControllerTest {
     void setUp() {
         startTime = LocalDateTime.now().plusHours(1);
         endTime = LocalDateTime.now().plusHours(2);
-        testRequest = new ReservationRequest("A1", "lot-centrala", startTime, endTime);
+        // ADAUGAT 1L ca prim parametru (spotId)
+        testRequest = new ReservationRequest(1L, "A1", "lot-centrala", startTime, endTime);
 
         testResponse = new ReservationResponse(
                 1L, 1L, "lot-centrala", "A1", "user@test.com", startTime, endTime, ReservationStatus.ACTIVE
@@ -53,8 +54,9 @@ class ReservationControllerTest {
 
     @Test
     void testCreateReservation_ValidatesInput() {
-        // REPARAT: Ordinea corectă a parametrilor
+        // ADAUGAT 1L ca prim parametru
         ReservationRequest invalidRequest = new ReservationRequest(
+                1L,
                 "A1",
                 "lot-centrala",
                 LocalDateTime.now().plusHours(2),

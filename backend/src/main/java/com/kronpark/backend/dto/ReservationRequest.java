@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public record ReservationRequest(
+        // ADAUGĂ ACEST CÂMP:
+        Long spotId, 
+
         @NotNull(message = "Spot number is required")
         String spotNumber,
 

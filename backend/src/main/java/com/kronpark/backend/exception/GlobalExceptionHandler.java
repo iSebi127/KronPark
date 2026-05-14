@@ -54,6 +54,7 @@ public class GlobalExceptionHandler {
 
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", request, validationErrors);
     }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(
             AccessDeniedException ex,
@@ -66,22 +67,27 @@ public class GlobalExceptionHandler {
                 null
         );
     }
+
+    // --- MODIFICAREA ESTE AICI ---
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(
             Exception ex,
             HttpServletRequest request
     ) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error", request, null);
+        // Această linie va forța afișarea erorii în terminalul tău de Java/Docker cu roșu
+        ex.printStackTrace(); 
+        
+        // Trimitem și mesajul erorii către frontend pentru a-l vedea în tab-ul Network
+        String errorMessage = "Unexpected server error: " + ex.getMessage();
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage, request, null);
     }
-
-
+    // ----------------------------
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalState(
             IllegalStateException ex,
             HttpServletRequest request
     ) {
-
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request, null);
     }
 
@@ -90,7 +96,6 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             HttpServletRequest request
     ) {
-
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null);
     }
 

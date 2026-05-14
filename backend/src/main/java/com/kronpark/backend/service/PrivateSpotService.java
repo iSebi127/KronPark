@@ -5,14 +5,18 @@ import com.kronpark.backend.dto.PrivateSpotResponse;
 import com.kronpark.backend.entity.PrivateSpot;
 import com.kronpark.backend.entity.SpotStatus;
 import com.kronpark.backend.entity.User;
+import com.kronpark.backend.exception.DuplicateResourceException;
+import com.kronpark.backend.exception.ResourceNotFoundException;
 import com.kronpark.backend.repository.PrivateSpotRepository;
 import com.kronpark.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalTime;
+import java.time.LocalTime; // Aceasta lipsea acum
 import java.util.List;
+
+// ... restul codului
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,12 @@ public class PrivateSpotService {
     public PrivateSpotResponse createPrivateSpot(PrivateSpotRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean alreadyExists = privateSpotRepository.existsByUserAndZone(user, request.zone());
+    
+    if (alreadyExists) {
+        throw new DuplicateResourceException("Ai deja un loc de parcare înregistrat în zona " + request.zone());
+    }
 
         PrivateSpot spot = PrivateSpot.builder()
                 .ownerName(request.ownerName())
@@ -42,44 +52,32 @@ public class PrivateSpotService {
     }
 
     @Transactional(readOnly = true)
-    public List<PrivateSpotResponse> getAllAvailableSpots() {
-        return privateSpotRepository.findAllByStatus(SpotStatus.AVAILABLE)
-                .stream()
-                .map(PrivateSpotResponse::from)
-                .toList();
-    }
+    public List<PrivateSpotResponse> getMySpots(String email) {
+    return privateSpotRepository.findAllByUser_Email(email)
+            .stream()
+            .map(PrivateSpotResponse::from)
+            .toList();
+}
 
     @Transactional(readOnly = true)
     public List<PrivateSpotResponse> getFilteredSpots(String zone) {
-        LocalTime now = LocalTime.now();
-
-        List<PrivateSpot> spots;
-        if (zone != null && !zone.trim().isEmpty()) {
-            spots = privateSpotRepository.findAllByZoneIgnoreCase(zone.trim());
-        } else {
-            spots = privateSpotRepository.findAll();
-        }
-
-        return spots.stream()
-                .map(spot -> {
-
-                    String calculatedStatus = isCurrentlyAvailable(spot, now) ? "AVAILABLE" : "OCCUPIED";
-
-
-                    return new PrivateSpotResponse(
-                            spot.getId(),
-                            spot.getOwnerName(),
-                            spot.getLatitude(),
-                            spot.getLongitude(),
-                            spot.getAvailableFrom(),
-                            spot.getAvailableTo(),
-                            spot.getPrice(),
-                            spot.getZone(),
-                            calculatedStatus
-                    );
-                })
-                .toList();
+    List<PrivateSpot> spots;
+    
+    // Verificăm dacă filtrăm după zonă sau luăm tot
+    if (zone != null && !zone.isEmpty()) {
+        spots = privateSpotRepository.findAllByZoneIgnoreCase(zone);
+    } else {
+        spots = privateSpotRepository.findAll();
     }
+
+    return spots.stream()
+            .map(spot -> {
+                // IMPORTANT: Aici decidem ce status vede celălalt user
+                // Dacă în DB statusul este AVAILABLE, atunci și User B trebuie să îl vadă AVAILABLE
+                return PrivateSpotResponse.from(spot); 
+            })
+            .toList();
+}
 
     private boolean isCurrentlyAvailable(PrivateSpot spot, LocalTime now) {
         if (spot.getAvailableTo().isAfter(spot.getAvailableFrom())) {
